@@ -1,17 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { PaymentMethod } from "./payment-method.entity";
-import { Repository } from "typeorm";
-import { CreatePaymentMethodDto } from "./dto/payment-method.dto";
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { PaymentMethod } from './payment-method.entity'
+import { Repository } from 'typeorm'
+import { type CreatePaymentMethodDto } from './dto/payment-method.dto'
 
 @Injectable()
 export class PaymentMethodsService {
-  constructor(
+  constructor (
     @InjectRepository(PaymentMethod)
-    private paymentMethodsRepository: Repository<PaymentMethod>,
+    private readonly paymentMethodsRepository: Repository<PaymentMethod>
   ) {}
 
-  create(createPaymentMethodDto: CreatePaymentMethodDto): Promise<PaymentMethod> {
+  async create (createPaymentMethodDto: CreatePaymentMethodDto): Promise<PaymentMethod> {
     const paymentMethod = new PaymentMethod()
     paymentMethod.user = createPaymentMethodDto.user
     paymentMethod.isDefault = createPaymentMethodDto.isDefault
@@ -19,14 +19,14 @@ export class PaymentMethodsService {
     paymentMethod.expiryMonth = createPaymentMethodDto.expiryMonth
     paymentMethod.expiryYear = createPaymentMethodDto.expiryYear
     paymentMethod.resyId = createPaymentMethodDto.resyId
-    return this.paymentMethodsRepository.save(paymentMethod)
+    return await this.paymentMethodsRepository.save(paymentMethod)
   }
 
-  findOne(uuid: string): Promise<PaymentMethod | null> {
-    return this.paymentMethodsRepository.findOneBy({ uuid })
+  async findOne (uuid: string): Promise<PaymentMethod | null> {
+    return await this.paymentMethodsRepository.findOneBy({ uuid })
   }
 
-  async remove(uuid: string): Promise<void> {
+  async remove (uuid: string): Promise<void> {
     await this.paymentMethodsRepository.delete(uuid)
   }
 }

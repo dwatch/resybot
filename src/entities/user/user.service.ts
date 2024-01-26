@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ResybotUser } from './user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { ResybotUser } from './user.entity'
+import { type CreateUserDto } from './dto/create-user.dto'
 
 @Injectable()
 export class UsersService {
-  constructor(
+  constructor (
     @InjectRepository(ResybotUser)
-    private usersRepository: Repository<ResybotUser>
+    private readonly usersRepository: Repository<ResybotUser>
   ) {}
 
-  create(createUserDto: CreateUserDto): Promise<ResybotUser> {
+  async create (createUserDto: CreateUserDto): Promise<ResybotUser> {
     const user = new ResybotUser()
     user.email = createUserDto.email
     user.password = createUserDto.password
@@ -20,14 +20,14 @@ export class UsersService {
     user.authToken = createUserDto.authToken
     user.paymentMethods = []
     user.reservations = []
-    return this.usersRepository.save(user)
-    }
-
-  findOne(uuid: string): Promise<ResybotUser | null> {
-    return this.usersRepository.findOneBy({ uuid: uuid })
+    return await this.usersRepository.save(user)
   }
 
-  async remove(uuid: string): Promise<void> {
+  async findOne (uuid: string): Promise<ResybotUser | null> {
+    return await this.usersRepository.findOneBy({ uuid })
+  }
+
+  async remove (uuid: string): Promise<void> {
     await this.usersRepository.delete(uuid)
   }
 }

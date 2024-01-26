@@ -1,3 +1,1 @@
-export type TimesOfWeek = {
-  [dayIndex: number]: string[]
-}
+export type TimesOfWeek = Record<number, string[]>
