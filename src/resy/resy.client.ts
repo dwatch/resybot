@@ -5,6 +5,7 @@ import { type Observable, lastValueFrom, map } from 'rxjs'
 import { type ResyGetCalendarResponse, type GetCalendarResponse, type ResyGetCalendarRequest } from './dto/get-calendar.dto'
 import { ResyPresenter } from './resy.presenter'
 import { LoginResponse, ResyLoginRequest, ResyLoginResponse } from './dto/login.dto'
+import { ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
 
 @Injectable()
 export class ResyClient {
@@ -22,6 +23,7 @@ export class ResyClient {
   // All full URLs
   private readonly LOGIN_URL = `${this.baseUrl}/3/auth/password`
   private readonly GET_CALENDAR_URL = `${this.baseUrl}/4/venue/calendar`
+  private readonly SEARCH_FOR_RESTAURANTS_URL = `${this.baseUrl}/3/venuesearch/search`
 
   async login(email: string, password: string): Promise<LoginResponse> {
     const headers = this.createHeaders('application/x-www-form-urlencoded')
@@ -32,6 +34,21 @@ export class ResyClient {
     const responseObservable = this.httpService.post(this.LOGIN_URL, payload, { headers: headers })
     const response = await this.extractResponse<ResyLoginResponse>(responseObservable)
     return this.resyPresenter.convertToLoginResponse(response)
+  }
+
+  async searchForRestaurants(query: string, numVenues: number, lat?: number, lng?: number): Promise<SearchForRestaurantsResponse> {
+    const headers = this.createHeaders('application/json')
+    const payload: ResySearchForRestaurantsRequest = {
+      "per_page": numVenues,
+      "query": query,
+      "types": ["venue", "cuisine"]
+    }
+    if (lat !== undefined && lng !== undefined) {
+      payload["geo"] = {"latitude": lat, "longitude": lng}
+    }
+    const responseObservable = this.httpService.post(this.SEARCH_FOR_RESTAURANTS_URL, payload, { headers: headers })
+    const response = await this.extractResponse<ResySearchForRestaurantsResponse>(responseObservable)
+    return this.resyPresenter.convertToSearchForRestaurantsResponse(response)
   }
 
   async getRestaurantCalendar (venueId: string, partySize: number, sd: string, ed: string): Promise<GetCalendarResponse> {
