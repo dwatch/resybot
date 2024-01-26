@@ -4,6 +4,7 @@ import { type AxiosResponse } from 'axios'
 import { type Observable, lastValueFrom, map } from 'rxjs'
 import { type ResyGetCalendarResponse, type GetCalendarResponse, type ResyGetCalendarRequest } from './dto/get-calendar.dto'
 import { ResyPresenter } from './resy.presenter'
+import { LoginResponse, ResyLoginRequest, ResyLoginResponse } from './dto/login.dto'
 
 @Injectable()
 export class ResyClient {
@@ -19,20 +20,31 @@ export class ResyClient {
   private readonly host: string = process.env.HOST
 
   // All full URLs
+  private readonly LOGIN_URL = `${this.baseUrl}/3/auth/password`
   private readonly GET_CALENDAR_URL = `${this.baseUrl}/4/venue/calendar`
 
-  async getRestaurantCalendar (venueId: string, partySize: number, sd: string, ed: string): Promise<GetCalendarResponse> {
-    const options = {
-      params: {
-        venue_id: venueId,
-        num_seats: partySize,
-        start_date: sd,
-        end_date: ed
-      } as ResyGetCalendarRequest,
-      headers: this.createHeaders('application/json')
+  async login(email: string, password: string): Promise<LoginResponse> {
+    const headers = this.createHeaders('application/x-www-form-urlencoded')
+    const payload: ResyLoginRequest = {
+      "email": email,
+      "password": password
     }
-    const response = await this.extractResponse<ResyGetCalendarResponse>(this.httpService.get(this.GET_CALENDAR_URL, options))
-    return await this.resyPresenter.convertResponseToGetCalendarResponse(response)
+    const responseObservable = this.httpService.post(this.LOGIN_URL, payload, { headers: headers })
+    const response = await this.extractResponse<ResyLoginResponse>(responseObservable)
+    return this.resyPresenter.convertToLoginResponse(response)
+  }
+
+  async getRestaurantCalendar (venueId: string, partySize: number, sd: string, ed: string): Promise<GetCalendarResponse> {
+    const headers = this.createHeaders('application/json')
+    const params: ResyGetCalendarRequest = {
+      venue_id: venueId,
+      num_seats: partySize,
+      start_date: sd,
+      end_date: ed
+    }
+    const responseObservable = this.httpService.get(this.GET_CALENDAR_URL, { headers: headers, params: params })
+    const response = await this.extractResponse<ResyGetCalendarResponse>(responseObservable)
+    return await this.resyPresenter.convertToGetCalendarResponse(response)
   }
 
   // ======================================================== Request Helper Functions ========================================================

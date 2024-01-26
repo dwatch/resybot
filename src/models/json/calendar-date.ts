@@ -1,4 +1,4 @@
-export interface CalendarDate {
+export type CalendarDate = {
   'date': string
   'reservation': string
   'event': string
