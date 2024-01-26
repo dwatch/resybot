@@ -3,6 +3,7 @@ import { type ResyGetCalendarResponse, type GetCalendarResponse } from './dto/ge
 import { forkJoin, from, lastValueFrom } from 'rxjs'
 import { LoginResponse, ResyLoginResponse } from './dto/login.dto'
 import { ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
+import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 
 @Injectable()
 export class ResyPresenter {
@@ -22,6 +23,12 @@ export class ResyPresenter {
           return { name: hit.name, venueId: hit.id.resy }
       })
     }
+  }
+
+  convertToGetRestaurantDetailsResponse(response: ResyGetRestaurantDetailsResponse): GetRestaurantDetailsResponse {
+    return {
+        name: response.venue.name
+    } as GetRestaurantDetailsResponse
   }
 
   async convertToGetCalendarResponse (response: ResyGetCalendarResponse): Promise<GetCalendarResponse> {

@@ -3,6 +3,7 @@ import { ResyClient } from './resy.client'
 import { type GetCalendarResponse } from './dto/get-calendar.dto'
 import { LoginRequest, LoginResponse } from './dto/login.dto'
 import { SearchForRestaurantsRequest, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
+import { GetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 
 @Controller('resy-admin')
 export class ResyController {
@@ -16,6 +17,11 @@ export class ResyController {
   @Post('search')
   async searchForRestaurants (@Body() body: SearchForRestaurantsRequest): Promise<SearchForRestaurantsResponse> {
     return await this.resyClient.searchForRestaurants(body.query, body.numVenues, body.lat, body.lng)
+  }
+
+  @Get('details/:venueId')
+  async getRestaurantDetails (@Param('venueId') venueId: string): Promise<GetRestaurantDetailsResponse> {
+    return await this.resyClient.getRestaurantDetails(venueId)
   }
 
   @Get('getCalendar/:venueId/:partySize/:sd/:ed')

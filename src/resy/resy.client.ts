@@ -6,6 +6,7 @@ import { type ResyGetCalendarResponse, type GetCalendarResponse, type ResyGetCal
 import { ResyPresenter } from './resy.presenter'
 import { LoginResponse, ResyLoginRequest, ResyLoginResponse } from './dto/login.dto'
 import { ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
+import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsRequest, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 
 @Injectable()
 export class ResyClient {
@@ -24,6 +25,7 @@ export class ResyClient {
   private readonly LOGIN_URL = `${this.baseUrl}/3/auth/password`
   private readonly GET_CALENDAR_URL = `${this.baseUrl}/4/venue/calendar`
   private readonly SEARCH_FOR_RESTAURANTS_URL = `${this.baseUrl}/3/venuesearch/search`
+  private readonly GET_RESTAURANT_DETAILS_URL = `${this.baseUrl}/2/config`
 
   async login(email: string, password: string): Promise<LoginResponse> {
     const headers = this.createHeaders('application/x-www-form-urlencoded')
@@ -49,6 +51,14 @@ export class ResyClient {
     const responseObservable = this.httpService.post(this.SEARCH_FOR_RESTAURANTS_URL, payload, { headers: headers })
     const response = await this.extractResponse<ResySearchForRestaurantsResponse>(responseObservable)
     return this.resyPresenter.convertToSearchForRestaurantsResponse(response)
+  }
+
+  async getRestaurantDetails(venueId: string): Promise<GetRestaurantDetailsResponse> {
+    const headers = this.createHeaders('application/json')
+    const params: ResyGetRestaurantDetailsRequest = { "venue_id": venueId }
+    const responseObservable = this.httpService.get(this.GET_RESTAURANT_DETAILS_URL, { headers: headers, params: params })
+    const response = await this.extractResponse<ResyGetRestaurantDetailsResponse>(responseObservable)
+    return this.resyPresenter.convertToGetRestaurantDetailsResponse(response)
   }
 
   async getRestaurantCalendar (venueId: string, partySize: number, sd: string, ed: string): Promise<GetCalendarResponse> {
