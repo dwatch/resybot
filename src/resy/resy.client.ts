@@ -10,6 +10,7 @@ import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsRequest, ResyGetR
 import { GetAvailableReservationsResponse, ResyGetAvailableReservationsRequest, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 import { CreateReservationResponse, ResyCreateReservationRequest, ResyCreateReservationResponse } from './dto/create-reservation.dto'
 import { ConfigTokenDetails } from 'src/models/json/config-token-details'
+import { BookReservationResponse, ResyBookReservationRequest, ResyBookReservationResponse } from './dto/book-reservation.dto'
 
 @Injectable()
 export class ResyClient {
@@ -31,6 +32,7 @@ export class ResyClient {
   private readonly GET_RESTAURANT_DETAILS_URL = `${this.baseUrl}/2/config`
   private readonly GET_AVAILABLE_RESERVATIONS_URL = `${this.baseUrl}/4/find`
   private readonly CREATE_RESERVATION_URL = `${this.baseUrl}/3/details`
+  private readonly BOOK_RESERVATION_URL = `${this.baseUrl}/3/book`
 
   async login(email: string, password: string): Promise<LoginResponse> {
     const headers = this.createHeaders('application/x-www-form-urlencoded')
@@ -107,6 +109,17 @@ export class ResyClient {
     const responseObservable = this.httpService.post(this.CREATE_RESERVATION_URL, payload, { headers: headers })
     const response = await this.extractResponse<ResyCreateReservationResponse>(responseObservable)
     return await this.resyPresenter.convertToCreateReservationResponse(response)
+  }
+
+  async bookReservation (bookToken: string): Promise<BookReservationResponse> {
+    const headers = this.createHeaders('application/x-www-form-urlencoded')
+    const payload: ResyBookReservationRequest = {
+      "book_token": bookToken,
+      "source_id": process.env.RES_SOURCE_ID!
+    }
+    const responseObservable = this.httpService.post(this.BOOK_RESERVATION_URL, payload, { headers: headers })
+    const response = await this.extractResponse<ResyBookReservationResponse>(responseObservable)
+    return await this.resyPresenter.convertToBookReservationResponse(response)
   }
 
   // ======================================================== Request Helper Functions ========================================================
