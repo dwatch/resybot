@@ -5,6 +5,7 @@ import { LoginRequest, LoginResponse } from './dto/login.dto'
 import { SearchForRestaurantsRequest, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
 import { GetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 import { GetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
+import { CreateReservationRequest, CreateReservationResponse } from './dto/create-reservation.dto'
 
 @Controller('resy-admin')
 export class ResyController {
@@ -44,4 +45,8 @@ export class ResyController {
     return await this.resyClient.getAvailableReservations(venueId, date, size)
   }
   
+  @Post('create-reservation')
+  async createReservation (@Body() body: CreateReservationRequest): Promise<CreateReservationResponse> {
+    return await this.resyClient.createReservation(body.configId)
+  }
 }

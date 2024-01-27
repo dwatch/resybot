@@ -5,6 +5,7 @@ import { LoginResponse, ResyLoginResponse } from './dto/login.dto'
 import { ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
 import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 import { GetAvailableReservationsResponse, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
+import { CreateReservationResponse, ResyCreateReservationResponse } from './dto/create-reservation.dto'
 
 @Injectable()
 export class ResyPresenter {
@@ -60,4 +61,10 @@ export class ResyPresenter {
       slots: await lastValueFrom(forkJoin(slotsObservables))
     }
   }
+
+  convertToCreateReservationResponse(response: ResyCreateReservationResponse): CreateReservationResponse {
+    return {
+        bookToken: response.book_token.value
+    }
+}
 }

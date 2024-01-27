@@ -8,6 +8,8 @@ import { LoginResponse, ResyLoginRequest, ResyLoginResponse } from './dto/login.
 import { ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
 import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsRequest, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 import { GetAvailableReservationsResponse, ResyGetAvailableReservationsRequest, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
+import { CreateReservationResponse, ResyCreateReservationRequest, ResyCreateReservationResponse } from './dto/create-reservation.dto'
+import { ConfigTokenDetails } from 'src/models/json/config-token-details'
 
 @Injectable()
 export class ResyClient {
@@ -28,6 +30,7 @@ export class ResyClient {
   private readonly SEARCH_FOR_RESTAURANTS_URL = `${this.baseUrl}/3/venuesearch/search`
   private readonly GET_RESTAURANT_DETAILS_URL = `${this.baseUrl}/2/config`
   private readonly GET_AVAILABLE_RESERVATIONS_URL = `${this.baseUrl}/4/find`
+  private readonly CREATE_RESERVATION_URL = `${this.baseUrl}/3/details`
 
   async login(email: string, password: string): Promise<LoginResponse> {
     const headers = this.createHeaders('application/x-www-form-urlencoded')
@@ -92,10 +95,35 @@ export class ResyClient {
     return await this.resyPresenter.convertToGetAvailableReservationsResponse(response)
   }
 
+  async createReservation (configId: string): Promise<CreateReservationResponse> {
+    const headers = this.createHeaders('application/json')
+    const configDetails = this.parseConfigToken(configId)
+    const payload: ResyCreateReservationRequest = {
+      "commit": 1, // Needs to be 1 to get a book_token, which is used in bookReservation()
+      "config_id": configId,
+      "day": configDetails.day,
+      "party_size": configDetails.partySize
+    }
+    const responseObservable = this.httpService.post(this.CREATE_RESERVATION_URL, payload, { headers: headers })
+    const response = await this.extractResponse<ResyCreateReservationResponse>(responseObservable)
+    return await this.resyPresenter.convertToCreateReservationResponse(response)
+  }
+
   // ======================================================== Request Helper Functions ========================================================
-  private async extractResponse<T>(responseObservable: Observable<AxiosResponse<T>>): Promise<T> {
+  private async extractResponse<T> (responseObservable: Observable<AxiosResponse<T>>): Promise<T> {
     const responseDataObservable = responseObservable.pipe(map((response: AxiosResponse) => response.data as T))
     return await lastValueFrom(responseDataObservable)
+  }
+
+  private parseConfigToken (configToken: string): ConfigTokenDetails {
+    const parsedToken = configToken.split("//")[1].split("/")
+    return {
+        venueId: parsedToken[1],
+        day: parsedToken[4],
+        time: parsedToken[6],
+        partySize: +parsedToken[7],
+        type: parsedToken[8]
+    }
   }
 
   private createHeaders (contentType: string): Record<string, string> {
