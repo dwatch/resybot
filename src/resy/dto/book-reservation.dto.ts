@@ -1,20 +1,20 @@
 // Used by Resybot (CamelCase)
-export type BookReservationRequest = {
+export class BookReservationRequest {
   "bookToken": string;
 }
 
-export type BookReservationResponse = {
+export class BookReservationResponse {
   "reservationId": string;
   "resyToken": string;
 }
 
 // Used by Resy (snake_case)
-export type ResyBookReservationRequest = {
+export class ResyBookReservationRequest {
   "book_token": string;
   "source_id": string;
 }
 
-export type ResyBookReservationResponse = {
+export class ResyBookReservationResponse {
   "reservation_id": string;
   "resy_token": string;
 }

@@ -7,6 +7,7 @@ import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsResponse } from '
 import { GetAvailableReservationsResponse, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 import { CreateReservationResponse, ResyCreateReservationResponse } from './dto/create-reservation.dto'
 import { BookReservationResponse, ResyBookReservationResponse } from './dto/book-reservation.dto'
+import { CancelReservationResponse, ResyCancelReservationResponse } from './dto/cancel-reservation.dto'
 
 @Injectable()
 export class ResyPresenter {
@@ -73,6 +74,12 @@ export class ResyPresenter {
     return {
         reservationId: response.reservation_id,
         resyToken: response.resy_token
+    }
+  }
+
+  convertToCancelReservationResponse(response: ResyCancelReservationResponse): CancelReservationResponse {
+    return {
+        refund: response.payment.refund,
     }
   }
 }

@@ -1,21 +1,21 @@
 // Used by Resybot (CamelCase)
-export type CreateReservationRequest = {
+export class CreateReservationRequest {
   "configId": string;
 }
 
-export type CreateReservationResponse = {
+export class CreateReservationResponse {
   "bookToken": string;
 }
 
 // Used by Resy (snake_case)
-export type ResyCreateReservationRequest = {
+export class ResyCreateReservationRequest {
   "commit": number;
   "config_id": string;
   "day": string;
   "party_size": number;
 }
 
-export type ResyCreateReservationResponse = {
+export class ResyCreateReservationResponse {
   "book_token": {
       "date_expires": string;
       "value": string;

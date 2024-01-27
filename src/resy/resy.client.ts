@@ -11,6 +11,7 @@ import { GetAvailableReservationsResponse, ResyGetAvailableReservationsRequest, 
 import { CreateReservationResponse, ResyCreateReservationRequest, ResyCreateReservationResponse } from './dto/create-reservation.dto'
 import { ConfigTokenDetails } from 'src/models/json/config-token-details'
 import { BookReservationResponse, ResyBookReservationRequest, ResyBookReservationResponse } from './dto/book-reservation.dto'
+import { CancelReservationResponse, ResyCancelReservationRequest, ResyCancelReservationResponse } from './dto/cancel-reservation.dto'
 
 @Injectable()
 export class ResyClient {
@@ -33,6 +34,7 @@ export class ResyClient {
   private readonly GET_AVAILABLE_RESERVATIONS_URL = `${this.baseUrl}/4/find`
   private readonly CREATE_RESERVATION_URL = `${this.baseUrl}/3/details`
   private readonly BOOK_RESERVATION_URL = `${this.baseUrl}/3/book`
+  private readonly CANCEL_RESERVATION_URL = `${this.baseUrl}/3/cancel`
 
   async login(email: string, password: string): Promise<LoginResponse> {
     const headers = this.createHeaders('application/x-www-form-urlencoded')
@@ -120,6 +122,16 @@ export class ResyClient {
     const responseObservable = this.httpService.post(this.BOOK_RESERVATION_URL, payload, { headers: headers })
     const response = await this.extractResponse<ResyBookReservationResponse>(responseObservable)
     return await this.resyPresenter.convertToBookReservationResponse(response)
+  }
+
+  async cancelReservation(resyToken: string): Promise<CancelReservationResponse> {
+    const headers = this.createHeaders('application/json')
+    const payload: ResyCancelReservationRequest = {
+        "resy_token": resyToken
+    }
+    const responseObservable = this.httpService.post(this.CANCEL_RESERVATION_URL, payload, { headers: headers })
+    const response = await this.extractResponse<ResyCancelReservationResponse>(responseObservable)
+    return await this.resyPresenter.convertToCancelReservationResponse(response)
   }
 
   // ======================================================== Request Helper Functions ========================================================
