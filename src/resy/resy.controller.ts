@@ -4,6 +4,7 @@ import { type GetCalendarResponse } from './dto/get-calendar.dto'
 import { LoginRequest, LoginResponse } from './dto/login.dto'
 import { SearchForRestaurantsRequest, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
 import { GetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
+import { GetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 
 @Controller('resy-admin')
 export class ResyController {
@@ -24,7 +25,7 @@ export class ResyController {
     return await this.resyClient.getRestaurantDetails(venueId)
   }
 
-  @Get('getCalendar/:venueId/:partySize/:sd/:ed')
+  @Get('calendar/:venueId/:partySize/:sd/:ed')
   async getCalendar (
     @Param('venueId') venueId: string,
     @Param('partySize') partySize: number,
@@ -33,4 +34,14 @@ export class ResyController {
   ): Promise<GetCalendarResponse> {
     return await this.resyClient.getRestaurantCalendar(venueId, partySize, sd, ed)
   }
+
+  @Get('available-reservations/:venueId/:date/:size')
+  async getAvailableReservations (
+    @Param('venueId') venueId: string,
+    @Param('date') date: string,
+    @Param('size') size: number
+  ): Promise<GetAvailableReservationsResponse> {
+    return await this.resyClient.getAvailableReservations(venueId, date, size)
+  }
+  
 }

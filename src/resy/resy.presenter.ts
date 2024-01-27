@@ -4,6 +4,7 @@ import { forkJoin, from, lastValueFrom } from 'rxjs'
 import { LoginResponse, ResyLoginResponse } from './dto/login.dto'
 import { ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
 import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
+import { GetAvailableReservationsResponse, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 
 @Injectable()
 export class ResyPresenter {
@@ -43,6 +44,20 @@ export class ResyPresenter {
     return {
       lastCalendarDay: response.last_calendar_day,
       scheduled: await lastValueFrom(forkJoin(scheduleObservables))
+    }
+  }
+
+  async convertToGetAvailableReservationsResponse (response: ResyGetAvailableReservationsResponse): Promise<GetAvailableReservationsResponse> {
+    const slotsObservables = response.results.venues[0].slots.map((slot) => {
+      return from(Promise.resolve({
+        configToken: slot.config.token,
+        reservationType: slot.config.type,
+        start: slot.date.start,
+        end: slot.date.end  
+      }))
+    })
+    return {
+      slots: await lastValueFrom(forkJoin(slotsObservables))
     }
   }
 }

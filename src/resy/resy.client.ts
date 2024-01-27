@@ -7,6 +7,7 @@ import { ResyPresenter } from './resy.presenter'
 import { LoginResponse, ResyLoginRequest, ResyLoginResponse } from './dto/login.dto'
 import { ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
 import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsRequest, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
+import { GetAvailableReservationsResponse, ResyGetAvailableReservationsRequest, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 
 @Injectable()
 export class ResyClient {
@@ -26,6 +27,7 @@ export class ResyClient {
   private readonly GET_CALENDAR_URL = `${this.baseUrl}/4/venue/calendar`
   private readonly SEARCH_FOR_RESTAURANTS_URL = `${this.baseUrl}/3/venuesearch/search`
   private readonly GET_RESTAURANT_DETAILS_URL = `${this.baseUrl}/2/config`
+  private readonly GET_AVAILABLE_RESERVATIONS_URL = `${this.baseUrl}/4/find`
 
   async login(email: string, password: string): Promise<LoginResponse> {
     const headers = this.createHeaders('application/x-www-form-urlencoded')
@@ -72,6 +74,22 @@ export class ResyClient {
     const responseObservable = this.httpService.get(this.GET_CALENDAR_URL, { headers: headers, params: params })
     const response = await this.extractResponse<ResyGetCalendarResponse>(responseObservable)
     return await this.resyPresenter.convertToGetCalendarResponse(response)
+  }
+
+  async getAvailableReservations (venueId: string, date: string, partySize: number): Promise<GetAvailableReservationsResponse> {
+    const headers = this.createHeaders('application/json')
+    const params: ResyGetAvailableReservationsRequest = {
+      "day": date,
+      "lat": 0,
+      "long": 0,
+      "party_size": partySize,
+      "venue_id": venueId,
+      "exclude_non_discoverable": true,
+      "sort_by": "available"
+    }
+    const responseObservable = this.httpService.get(this.GET_AVAILABLE_RESERVATIONS_URL, { headers: headers, params: params })
+    const response = await this.extractResponse<ResyGetAvailableReservationsResponse>(responseObservable)
+    return await this.resyPresenter.convertToGetAvailableReservationsResponse(response)
   }
 
   // ======================================================== Request Helper Functions ========================================================
