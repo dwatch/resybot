@@ -1,12 +1,6 @@
 import { ReservationSlot } from "src/models/json/reservation-slot";
 
 // Used by Resybot (CamelCase)
-export class GetAvailableReservationsRequest {
-  "venueId": string;
-  "date": string;
-  "partySize": number;
-}
-
 export class GetAvailableReservationsResponse {
   "slots": ReservationSlot[]
 }
