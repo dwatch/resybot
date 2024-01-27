@@ -2,16 +2,16 @@ import { PaymentMethodDetails } from "src/models/json/payment-method-details"
 
 // Used by Resybot (CamelCase)
 export class LoginRequest {
-  "email": string;
-  "password": string;
+  "email": string
+  "password": string
 }
 
 export class LoginResponse {
-  "firstName": string;
-  "lastName": string;
-  "token": string;
-  "paymentMethodId": number;
-  "paymentMethods": PaymentMethodDetails[];
+  "firstName": string
+  "lastName": string
+  "token": string
+  "paymentMethodId": number
+  "paymentMethods": PaymentMethodDetails[]
 }
 
 // Used by Resy (snake_case)
@@ -21,9 +21,9 @@ export class ResyLoginRequest {
   }
   
 export class ResyLoginResponse {
-    "first_name": string;
-    "last_name": string;
-    "token": string;
-    "payment_method_id": number;
-    "payment_methods": PaymentMethodDetails[];
+    "first_name": string
+    "last_name": string
+    "token": string
+    "payment_method_id": number
+    "payment_methods": PaymentMethodDetails[]
 }

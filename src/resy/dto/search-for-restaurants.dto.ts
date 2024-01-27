@@ -1,38 +1,38 @@
 // Used by Resybot (CamelCase)
-export type SearchForRestaurantsRequest = {
+export class SearchForRestaurantsRequest {
   "query": string
   "numVenues": number
   "lat"?: number
   "lng"?: number
 }
 
-export type SearchForRestaurantsResponse = {
+export class SearchForRestaurantsResponse {
   "hits": RestaurantDetails[]
 }
 
-type RestaurantDetails = {
-  "name": string,
+class RestaurantDetails {
+  "name": string
   "venueId": string
 }
 
 // Used by Resy (snake_case)
-export type ResySearchForRestaurantsRequest = {
+export class ResySearchForRestaurantsRequest {
   "geo"?: {
-      "latitude": number;
-      "longitude": number;
+      "latitude": number
+      "longitude": number
   };
-  "per_page": number;
-  "query": string;
-  "types": string[];
+  "per_page": number
+  "query": string
+  "types": string[]
 }
 
-export type ResySearchForRestaurantsResponse = {
+export class ResySearchForRestaurantsResponse {
     "search": {
-        "hits": ResyRestaurantDetails[];
+        "hits": ResyRestaurantDetails[]
     };
 }
 
-type ResyRestaurantDetails = {
+class ResyRestaurantDetails {
   "name": string
   "id": {
       "resy": string // venue_id

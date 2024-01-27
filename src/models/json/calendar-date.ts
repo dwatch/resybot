@@ -1,4 +1,4 @@
-export type CalendarDate = {
+export class CalendarDate {
   'date': string
   'reservation': string
   'event': string

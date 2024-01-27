@@ -7,19 +7,19 @@ export class GetAvailableReservationsResponse {
 
 // Used by Resy (snake_case)
 export class ResyGetAvailableReservationsRequest {
-  "day": string;
-  "lat": number;
-  "long": number;
-  "party_size": number;
-  "venue_id": string;
-  "exclude_non_discoverable": boolean;
-  "sort_by": string;
+  "day": string
+  "lat": number
+  "long": number
+  "party_size": number
+  "venue_id": string
+  "exclude_non_discoverable": boolean
+  "sort_by": string
 }
 
 export class ResyGetAvailableReservationsResponse {
   "results": {
-    "venues": Venue[];
-  };
+    "venues": Venue[]
+  }
 }
 
 class Venue {
@@ -30,11 +30,11 @@ class Slot {
   "config": {
     "token": string,
     "type": string
-  };
+  }
   "date": {
     "start": string,
     "end": string
-  };
+  }
   "payment": {
     "cancellation_fee"?: string,
     "deposit_fee"?: string,

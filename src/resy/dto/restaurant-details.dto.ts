@@ -1,21 +1,19 @@
 // Used by Resybot (CamelCase)
-export type GetRestaurantDetailsRequest = {
-  "venueId": string;
+export class GetRestaurantDetailsRequest {
+  "venueId": string
 }
 
-export type GetRestaurantDetailsResponse = {
+export class GetRestaurantDetailsResponse {
   "name": string
 }
 
 // Used by Resy (snake_case)
-export type ResyGetRestaurantDetailsRequest = {
-  "venue_id": string;
+export class ResyGetRestaurantDetailsRequest {
+  "venue_id": string
 }
 
-export type ResyGetRestaurantDetailsResponse = {
-    "venue": VenueDetails
-}
-
-type VenueDetails = {
-  "name": string
+export class ResyGetRestaurantDetailsResponse {
+    "venue": {
+      "name": string
+    }
 }
