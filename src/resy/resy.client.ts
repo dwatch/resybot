@@ -158,7 +158,7 @@ export class ResyClient {
         .join('&');
   }
 
-  private createHeaders (contentType: string, payload: Record<string, string> | null = null): Record<string, string> {
+  private createHeaders (contentType: string, payload: string | null = null): Record<string, string> {
     const headers = {
       'X-Resy-Auth-Token': this.authToken,
       'X-Resy-Universal-Auth': this.authToken,
