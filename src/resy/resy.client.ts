@@ -114,12 +114,13 @@ export class ResyClient {
   }
 
   async bookReservation (bookToken: string): Promise<BookReservationResponse> {
-    const headers = this.createHeaders('application/x-www-form-urlencoded')
     const payload: ResyBookReservationRequest = {
       "book_token": bookToken,
       "source_id": process.env.RES_SOURCE_ID!
     }
-    const responseObservable = this.httpService.post(this.BOOK_RESERVATION_URL, payload, { headers: headers })
+    const encodedPayload = this.encodePayload(payload)
+    const headers = this.createHeaders('application/x-www-form-urlencoded', encodedPayload)
+    const responseObservable = this.httpService.post(this.BOOK_RESERVATION_URL, encodedPayload, { headers: headers })
     const response = await this.extractResponse<ResyBookReservationResponse>(responseObservable)
     return await this.resyPresenter.convertToBookReservationResponse(response)
   }
@@ -151,17 +152,29 @@ export class ResyClient {
     }
   }
 
-  private createHeaders (contentType: string): Record<string, string> {
-    return {
-      'Content-Type': contentType,
-      Authorization: `ResyAPI api_key="${this.apiKey}"`,
+  private encodePayload(payload) {
+    return Object.keys(payload)
+        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key]))
+        .join('&');
+  }
+
+  private createHeaders (contentType: string, payload: Record<string, string> | null = null): Record<string, string> {
+    const headers = {
       'X-Resy-Auth-Token': this.authToken,
       'X-Resy-Universal-Auth': this.authToken,
       'X-Origin': this.resyWidget,
-      Origin: this.resyWidget,
-      Referer: this.resyWidget,
-      Host: this.host,
-      'Cache-Control': 'no-cache'
+      'Origin': this.resyWidget,
+      'Referer': this.resyWidget,
+      'Cache-Control': 'no-cache',
+      'Authorization': `ResyAPI api_key="${this.apiKey}"`,
+      'Accept': '*/*',
+      'Host': this.host,
+      'Content-Type': contentType,
+      'User-Agent': undefined
     }
+    if (payload !== null) {
+      headers['Content-Length'] = Buffer.byteLength(payload).toString()
+    }
+    return headers
   }
 }
