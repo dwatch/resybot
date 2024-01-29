@@ -6,16 +6,6 @@ export class GetAvailableReservationsResponse {
 }
 
 // Used by Resy (snake_case)
-export class ResyGetAvailableReservationsRequest {
-  "day": string
-  "lat": number
-  "long": number
-  "party_size": number
-  "venue_id": string
-  "exclude_non_discoverable": boolean
-  "sort_by": string
-}
-
 export class ResyGetAvailableReservationsResponse {
   "results": {
     "venues": Venue[]
