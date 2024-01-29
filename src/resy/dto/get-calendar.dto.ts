@@ -7,13 +7,6 @@ export class GetCalendarResponse {
 }
 
 // Used by Resy (snake_case)
-export class ResyGetCalendarRequest {
-  'venue_id': string
-  'num_seats': number
-  'start_date': string
-  'end_date': string
-}
-
 export class ResyGetCalendarResponse {
   'last_calendar_day': string
   'scheduled': ResyCalendarDate[]

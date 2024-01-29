@@ -1,24 +1,49 @@
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
-import { type AxiosResponse } from 'axios'
-import { type Observable, lastValueFrom, map } from 'rxjs'
-import { type ResyGetCalendarResponse, type GetCalendarResponse, type ResyGetCalendarRequest } from './dto/get-calendar.dto'
+import { InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
+import { type ResyGetCalendarResponse, type GetCalendarResponse } from './dto/get-calendar.dto'
 import { ResyPresenter } from './resy.presenter'
 import { LoginResponse, ResyLoginRequest, ResyLoginResponse } from './dto/login.dto'
 import { ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse, SearchForRestaurantsResponse } from './dto/search-for-restaurants.dto'
-import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsRequest, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
-import { GetAvailableReservationsResponse, ResyGetAvailableReservationsRequest, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
+import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
+import { GetAvailableReservationsResponse, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 import { CreateReservationResponse, ResyCreateReservationRequest, ResyCreateReservationResponse } from './dto/create-reservation.dto'
 import { ConfigTokenDetails } from 'src/models/json/config-token-details'
 import { BookReservationResponse, ResyBookReservationRequest, ResyBookReservationResponse } from './dto/book-reservation.dto'
 import { CancelReservationResponse, ResyCancelReservationRequest, ResyCancelReservationResponse } from './dto/cancel-reservation.dto'
+import { Curl } from 'node-libcurl'
+import { stringify, ParsedUrlQueryInput } from 'querystring';
 
 @Injectable()
 export class ResyClient {
   constructor (
     private readonly httpService: HttpService,
     private readonly resyPresenter: ResyPresenter
-  ) {}
+  ) {
+    //this.setupLoggingInterceptor()
+  }
+
+  private setupLoggingInterceptor(): void {
+    const axios = this.httpService.axiosRef;
+
+    // Request interceptor
+    axios.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+        console.log('Starting Request', JSON.stringify(config, null, 2));
+        return config;
+    }, (error) => {
+        console.error('Request Error', error);
+        return Promise.reject(error);
+    });
+
+    // Response interceptor
+    axios.interceptors.response.use((response: AxiosResponse) => {
+        console.log('Response:', JSON.stringify(response.data, null, 2));
+        return response;
+    }, (error) => {
+        console.error('Response Error', error);
+        return Promise.reject(error);
+    });
+  }
 
   private readonly baseUrl: string = process.env.BASE_URL
   private readonly apiKey: string = process.env.API_KEY
@@ -37,18 +62,15 @@ export class ResyClient {
   private readonly CANCEL_RESERVATION_URL = `${this.baseUrl}/3/cancel`
 
   async login(email: string, password: string): Promise<LoginResponse> {
-    const headers = this.createHeaders('application/x-www-form-urlencoded')
     const payload: ResyLoginRequest = {
       "email": email,
       "password": password
     }
-    const responseObservable = this.httpService.post(this.LOGIN_URL, payload, { headers: headers })
-    const response = await this.extractResponse<ResyLoginResponse>(responseObservable)
-    return this.resyPresenter.convertToLoginResponse(response)
+    const resyResponse = await this.sendPostRequest<ResyLoginRequest, ResyLoginResponse>(this.LOGIN_URL, 'application/x-www-form-urlencoded', payload)
+    return this.resyPresenter.convertToLoginResponse(resyResponse)
   }
 
   async searchForRestaurants(query: string, numVenues: number, lat?: number, lng?: number): Promise<SearchForRestaurantsResponse> {
-    const headers = this.createHeaders('application/json')
     const payload: ResySearchForRestaurantsRequest = {
       "per_page": numVenues,
       "query": query,
@@ -57,35 +79,31 @@ export class ResyClient {
     if (lat !== undefined && lng !== undefined) {
       payload["geo"] = {"latitude": lat, "longitude": lng}
     }
-    const responseObservable = this.httpService.post(this.SEARCH_FOR_RESTAURANTS_URL, payload, { headers: headers })
-    const response = await this.extractResponse<ResySearchForRestaurantsResponse>(responseObservable)
-    return this.resyPresenter.convertToSearchForRestaurantsResponse(response)
+    const resyResponse = await this.sendPostRequest<ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse>(
+      this.SEARCH_FOR_RESTAURANTS_URL, 'application/json', payload
+    )
+    return this.resyPresenter.convertToSearchForRestaurantsResponse(resyResponse)
   }
 
   async getRestaurantDetails(venueId: string): Promise<GetRestaurantDetailsResponse> {
-    const headers = this.createHeaders('application/json')
-    const params: ResyGetRestaurantDetailsRequest = { "venue_id": venueId }
-    const responseObservable = this.httpService.get(this.GET_RESTAURANT_DETAILS_URL, { headers: headers, params: params })
-    const response = await this.extractResponse<ResyGetRestaurantDetailsResponse>(responseObservable)
-    return this.resyPresenter.convertToGetRestaurantDetailsResponse(response)
+    const params = { "venue_id": venueId }
+    const resyResponse = await this.sendGetRequest<ResyGetRestaurantDetailsResponse> (this.GET_RESTAURANT_DETAILS_URL, 'application/json', params)
+    return this.resyPresenter.convertToGetRestaurantDetailsResponse(resyResponse)
   }
 
   async getRestaurantCalendar (venueId: string, partySize: number, sd: string, ed: string): Promise<GetCalendarResponse> {
-    const headers = this.createHeaders('application/json')
-    const params: ResyGetCalendarRequest = {
+    const params = {
       venue_id: venueId,
       num_seats: partySize,
       start_date: sd,
       end_date: ed
     }
-    const responseObservable = this.httpService.get(this.GET_CALENDAR_URL, { headers: headers, params: params })
-    const response = await this.extractResponse<ResyGetCalendarResponse>(responseObservable)
-    return await this.resyPresenter.convertToGetCalendarResponse(response)
+    const resyResponse = await this.sendGetRequest<ResyGetCalendarResponse>(this.GET_CALENDAR_URL, 'application/json', params)
+    return await this.resyPresenter.convertToGetCalendarResponse(resyResponse)
   }
 
   async getAvailableReservations (venueId: string, date: string, partySize: number): Promise<GetAvailableReservationsResponse> {
-    const headers = this.createHeaders('application/json')
-    const params: ResyGetAvailableReservationsRequest = {
+    const params = {
       "day": date,
       "lat": 0,
       "long": 0,
@@ -94,13 +112,11 @@ export class ResyClient {
       "exclude_non_discoverable": true,
       "sort_by": "available"
     }
-    const responseObservable = this.httpService.get(this.GET_AVAILABLE_RESERVATIONS_URL, { headers: headers, params: params })
-    const response = await this.extractResponse<ResyGetAvailableReservationsResponse>(responseObservable)
-    return await this.resyPresenter.convertToGetAvailableReservationsResponse(response)
+    const resyResponse = await this.sendGetRequest<ResyGetAvailableReservationsResponse>(this.GET_AVAILABLE_RESERVATIONS_URL, 'application/json', params)
+    return await this.resyPresenter.convertToGetAvailableReservationsResponse(resyResponse)
   }
 
   async createReservation (configId: string): Promise<CreateReservationResponse> {
-    const headers = this.createHeaders('application/json')
     const configDetails = this.parseConfigToken(configId)
     const payload: ResyCreateReservationRequest = {
       "commit": 1, // Needs to be 1 to get a book_token, which is used in bookReservation()
@@ -108,9 +124,10 @@ export class ResyClient {
       "day": configDetails.day,
       "party_size": configDetails.partySize
     }
-    const responseObservable = this.httpService.post(this.CREATE_RESERVATION_URL, payload, { headers: headers })
-    const response = await this.extractResponse<ResyCreateReservationResponse>(responseObservable)
-    return await this.resyPresenter.convertToCreateReservationResponse(response)
+    const resyResponse = await this.sendPostRequest<ResyCreateReservationRequest, ResyCreateReservationResponse>(
+      this.CREATE_RESERVATION_URL, 'application/json', payload
+    )
+    return await this.resyPresenter.convertToCreateReservationResponse(resyResponse)
   }
 
   async bookReservation (bookToken: string): Promise<BookReservationResponse> {
@@ -118,29 +135,23 @@ export class ResyClient {
       "book_token": bookToken,
       "source_id": process.env.RES_SOURCE_ID!
     }
-    const encodedPayload = this.encodePayload(payload)
-    const headers = this.createHeaders('application/x-www-form-urlencoded', encodedPayload)
-    const responseObservable = this.httpService.post(this.BOOK_RESERVATION_URL, encodedPayload, { headers: headers })
-    const response = await this.extractResponse<ResyBookReservationResponse>(responseObservable)
-    return await this.resyPresenter.convertToBookReservationResponse(response)
+    const resyResponse = await this.sendPostRequest<ResyBookReservationRequest, ResyBookReservationResponse>(
+      this.BOOK_RESERVATION_URL, 'application/x-www-form-urlencoded', payload
+    )
+    return await this.resyPresenter.convertToBookReservationResponse(resyResponse)
   }
 
   async cancelReservation(resyToken: string): Promise<CancelReservationResponse> {
-    const headers = this.createHeaders('application/json')
     const payload: ResyCancelReservationRequest = {
         "resy_token": resyToken
     }
-    const responseObservable = this.httpService.post(this.CANCEL_RESERVATION_URL, payload, { headers: headers })
-    const response = await this.extractResponse<ResyCancelReservationResponse>(responseObservable)
-    return await this.resyPresenter.convertToCancelReservationResponse(response)
+    const resyResponse = await this.sendPostRequest<ResyCancelReservationRequest, ResyCancelReservationResponse>(
+this.CANCEL_RESERVATION_URL, 'application/json', payload
+    )
+    return await this.resyPresenter.convertToCancelReservationResponse(resyResponse)
   }
 
   // ======================================================== Request Helper Functions ========================================================
-  private async extractResponse<T> (responseObservable: Observable<AxiosResponse<T>>): Promise<T> {
-    const responseDataObservable = responseObservable.pipe(map((response: AxiosResponse) => response.data as T))
-    return await lastValueFrom(responseDataObservable)
-  }
-
   private parseConfigToken (configToken: string): ConfigTokenDetails {
     const parsedToken = configToken.split("//")[1].split("/")
     return {
@@ -152,29 +163,81 @@ export class ResyClient {
     }
   }
 
-  private encodePayload(payload) {
-    return Object.keys(payload)
-        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key]))
-        .join('&');
+  private async sendGetRequest<U> (url: string, contentType: string, params: ParsedUrlQueryInput): Promise<U> {
+    const urlWithParams = `${url}?${stringify(params)}`;
+    return new Promise((resolve, reject) => {
+      const curl = new Curl()
+      // Formatting Request Headers and Body
+      this.addHeadersToCurl(curl, contentType)
+      curl.setOpt(Curl.option.URL, urlWithParams)
+      curl.on('end', function (statusCode, body) {
+        this.close();
+        if (statusCode >= 200 && statusCode <= 299) {
+          try {
+            const bodyAsString = Buffer.isBuffer(body) ? body.toString() : body;
+            const parsedBody: U = JSON.parse(bodyAsString);            
+            resolve(parsedBody);  
+          } catch (error) {
+            reject(new Error('Error parsing response body'));
+          }
+        } else {
+          reject(new Error(`Request failed with status ${statusCode}`))
+        }
+      })
+      curl.on('error', curl.close.bind(curl));
+      // Execute
+      curl.perform();
+    })
   }
 
-  private createHeaders (contentType: string, payload: string | null = null): Record<string, string> {
-    const headers = {
-      'X-Resy-Auth-Token': this.authToken,
-      'X-Resy-Universal-Auth': this.authToken,
-      'X-Origin': this.resyWidget,
-      'Origin': this.resyWidget,
-      'Referer': this.resyWidget,
-      'Cache-Control': 'no-cache',
-      'Authorization': `ResyAPI api_key="${this.apiKey}"`,
-      'Accept': '*/*',
-      'Host': this.host,
-      'Content-Type': contentType,
-      'User-Agent': undefined
-    }
+  private async sendPostRequest<T,U> (url: string, contentType: string, payload: T): Promise<U> {
+    const formattedPayload = (contentType === 'application/x-www-form-urlencoded') 
+      ? Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&')
+      : JSON.stringify(payload)
+    return new Promise((resolve, reject) => {
+      const curl = new Curl()
+      // Formatting Request Headers and Body
+      this.addHeadersToCurl(curl, contentType, formattedPayload)
+      curl.setOpt(Curl.option.URL, url)
+      curl.setOpt(Curl.option.POSTFIELDS, formattedPayload)
+      //curl.setOpt(Curl.option.VERBOSE, true)
+      // Setting Execution Procedures
+      curl.on('end', function (statusCode, body) {
+        this.close();
+        if (statusCode >= 200 && statusCode <= 299) {
+          try {
+            const bodyAsString = Buffer.isBuffer(body) ? body.toString() : body;
+            const parsedBody: U = JSON.parse(bodyAsString);            
+            resolve(parsedBody);  
+          } catch (error) {
+            reject(new Error('Error parsing response body'));
+          }
+        } else {
+          reject(new Error(`Request failed with status ${statusCode}`))
+        }
+      })
+      curl.on('error', curl.close.bind(curl));
+      // Execute
+      curl.perform();
+    })
+  }
+
+  private addHeadersToCurl (curl: Curl, contentType: string, payload: string | null = null) {
+    const headers = [
+      'Accept: */*',
+      `Content-Type: ${contentType}`,
+      `X-Resy-Auth-Token: ${this.authToken}`,
+      `X-Resy-Universal-Auth: ${this.authToken}`,
+      `X-Origin: ${this.resyWidget}`,
+      `Origin: ${this.resyWidget}`,
+      `Referer: ${this.resyWidget}`,
+      'Cache-Control: no-cache',
+      `Authorization: ResyAPI api_key="${this.apiKey}"`,
+      `Host: ${this.host}`
+    ]
     if (payload !== null) {
-      headers['Content-Length'] = Buffer.byteLength(payload).toString()
+      headers.push(`Content-Length: ${Buffer.byteLength(payload)}`)
     }
-    return headers
+    curl.setOpt(Curl.option.HTTPHEADER, headers);
   }
 }
