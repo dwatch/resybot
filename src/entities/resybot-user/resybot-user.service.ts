@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { ResybotUser } from './user.entity'
+import { ResybotUser } from './resybot-user.entity'
 import { type CreateUserDto } from './dto/create-user.dto'
 
 @Injectable()
-export class UsersService {
+export class ResybotUserService {
   constructor (
     @InjectRepository(ResybotUser)
     private readonly usersRepository: Repository<ResybotUser>
@@ -25,6 +25,10 @@ export class UsersService {
 
   async findOne (uuid: string): Promise<ResybotUser | null> {
     return await this.usersRepository.findOneBy({ uuid })
+  }
+
+  async findOneByEmail (email: string): Promise<ResybotUser | null> {
+    return await this.usersRepository.findOneBy({ email: email })
   }
 
   async remove (uuid: string): Promise<void> {

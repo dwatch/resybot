@@ -3,11 +3,12 @@ import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { UsersModule } from './entities/user/user.module'
+import { ResybotUserModule } from './entities/resybot-user/resybot-user.module'
 import { PaymentMethodsModule } from './entities/payment-method/payment-method.module'
 import { RestaurantsModule } from './entities/restaurant/restaurant.module'
 import { ReservationsModule } from './entities/reservation/reservation.module'
 import { ResyModule } from './resy/resy.module'
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,11 +24,12 @@ import { ResyModule } from './resy/resy.module'
       autoLoadEntities: true,
       synchronize: false
     }),
-    UsersModule,
+    ResybotUserModule,
     PaymentMethodsModule,
     RestaurantsModule,
     ReservationsModule,
-    ResyModule
+    ResyModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService]

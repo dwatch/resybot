@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
-import { ResybotUser } from '../user/user.entity'
+import { ResybotUser } from '../resybot-user/resybot-user.entity'
 
 @Entity()
 export class PaymentMethod {
