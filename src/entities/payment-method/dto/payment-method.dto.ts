@@ -1,4 +1,4 @@
-import { type ResybotUser } from 'src/entities/user/user.entity'
+import { type ResybotUser } from 'src/entities/resybot-user/resybot-user.entity'
 
 export class CreatePaymentMethodDto {
   user: ResybotUser

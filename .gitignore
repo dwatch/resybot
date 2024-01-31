@@ -1,5 +1,6 @@
 dist/
 node_modules/
+secrets/
 .env
 package-lock.json
 .DS_Store
