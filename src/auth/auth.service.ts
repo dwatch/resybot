@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { hashSync, compareSync } from 'bcrypt';
 import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
 import { JwtService } from '@nestjs/jwt';
 import { ResybotUser } from 'src/entities/resybot-user/resybot-user.entity';
@@ -17,9 +18,12 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
+  private readonly SALT_ROUNDS = 10
+
   async validateUser(email: string, password: string): Promise<ResybotUser | null> {
     const user = await this.resybotUserService.findOneByEmail(email);
-    if (user && user.password === password) {
+    const passwordsMatch: boolean = compareSync(password, user.password)
+    if (passwordsMatch) {
       return user
     }
     return null
@@ -34,9 +38,10 @@ export class AuthService {
 
   async signup(email: string, password: string): Promise<ResybotUser> {
     const loginResponse = await this.resyClient.login(email, password)
+    const hash = hashSync(password, this.SALT_ROUNDS)
     const createUserDto: CreateUserDto = {
       email: email,
-      password: password,
+      password: hash,
       firstName: loginResponse.firstName,
       lastName: loginResponse.lastName,
       authToken: loginResponse.token
