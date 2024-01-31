@@ -1,6 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
+import { LoginDto } from './dto/auth.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -9,10 +10,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
+      usernameField: 'email'
     });
   }
 
-  async validate(payload: any) {
-    return { uuid: payload.sub, username: payload.username };
+  async validate(payload: LoginDto) {
+    return { uuid: payload.sub, username: payload.email };
   }
 }
