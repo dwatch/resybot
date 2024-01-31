@@ -22,11 +22,12 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<ResybotUser | null> {
     const user = await this.resybotUserService.findOneByEmail(email);
-    const passwordsMatch: boolean = compareSync(password, user.password)
-    if (passwordsMatch) {
-      return user
-    }
-    return null
+    if (user === null) { return null }
+
+    const passwordsMatch = compareSync(password, user.password)
+    if (!passwordsMatch) { return null }
+
+    return user
   }
 
   async login(user: ResybotUser) {
