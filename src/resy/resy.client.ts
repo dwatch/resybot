@@ -8,11 +8,11 @@ import { ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse, Sear
 import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 import { GetAvailableReservationsResponse, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 import { CreateReservationResponse, ResyCreateReservationRequest, ResyCreateReservationResponse } from './dto/create-reservation.dto'
-import { ConfigTokenDetails } from 'src/utilities/json/config-token-details'
 import { BookReservationResponse, ResyBookReservationRequest, ResyBookReservationResponse } from './dto/book-reservation.dto'
 import { CancelReservationResponse, ResyCancelReservationRequest, ResyCancelReservationResponse } from './dto/cancel-reservation.dto'
 import { Curl } from 'node-libcurl'
 import { stringify, ParsedUrlQueryInput } from 'querystring';
+import { parseConfigToken } from 'src/utilities/utilities'
 
 @Injectable()
 export class ResyClient {
@@ -117,7 +117,7 @@ export class ResyClient {
   }
 
   async createReservation (configId: string): Promise<CreateReservationResponse> {
-    const configDetails = this.parseConfigToken(configId)
+    const configDetails = parseConfigToken(configId)
     const payload: ResyCreateReservationRequest = {
       "commit": 1, // Needs to be 1 to get a book_token, which is used in bookReservation()
       "config_id": configId,
@@ -152,17 +152,6 @@ this.CANCEL_RESERVATION_URL, 'application/json', payload
   }
 
   // ======================================================== Request Helper Functions ========================================================
-  private parseConfigToken (configToken: string): ConfigTokenDetails {
-    const parsedToken = configToken.split("//")[1].split("/")
-    return {
-        venueId: parsedToken[1],
-        day: parsedToken[4],
-        time: parsedToken[6],
-        partySize: +parsedToken[7],
-        type: parsedToken[8]
-    }
-  }
-
   private async sendGetRequest<U> (url: string, contentType: string, params: ParsedUrlQueryInput): Promise<U> {
     const urlWithParams = `${url}?${stringify(params)}`;
     return new Promise((resolve, reject) => {

@@ -11,6 +11,7 @@ import { ResyModule } from './resy/resy.module'
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard'
     RestaurantsModule,
     ReservationsModule,
     ResyModule,
-    AuthModule
+    AuthModule,
+    BookingModule
   ],
   controllers: [AppController],
   providers: [AppService, {provide: APP_GUARD, useClass: JwtAuthGuard}]

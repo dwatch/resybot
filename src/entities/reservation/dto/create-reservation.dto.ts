@@ -10,5 +10,6 @@ export class CreateReservationDto {
   status: ReservationStatus
   unavailableDates: string[]
   desiredTimesOfWeek: TimesOfWeek
-  reservationToken: string | null = null
+  reservationToken: string | undefined = undefined
+  reservationDate: Date | undefined = undefined
 }

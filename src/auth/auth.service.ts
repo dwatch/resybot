@@ -8,6 +8,7 @@ import { CreateUserDto } from 'src/entities/resybot-user/dto/create-user.dto';
 import { PaymentMethodsService } from 'src/entities/payment-method/payment-method.service';
 import { CreatePaymentMethodDto } from 'src/entities/payment-method/dto/payment-method.dto';
 import { LoginDto } from './dto/auth.dto';
+import { Constants } from 'src/utilities/constants';
 
 @Injectable()
 export class AuthService {
@@ -17,8 +18,6 @@ export class AuthService {
     private resyClient: ResyClient,
     private jwtService: JwtService
   ) {}
-
-  private readonly SALT_ROUNDS = 10
 
   async validateUser(email: string, password: string): Promise<ResybotUser | null> {
     const user = await this.resybotUserService.findOneByEmail(email);
@@ -39,7 +38,7 @@ export class AuthService {
 
   async signup(email: string, password: string): Promise<ResybotUser> {
     const loginResponse = await this.resyClient.login(email, password)
-    const hash = hashSync(password, this.SALT_ROUNDS)
+    const hash = hashSync(password, Constants.SALT_ROUNDS)
     const createUserDto: CreateUserDto = {
       email: email,
       password: hash,
