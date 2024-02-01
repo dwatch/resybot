@@ -8,7 +8,7 @@ import { ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse, Sear
 import { GetRestaurantDetailsResponse, ResyGetRestaurantDetailsResponse } from './dto/restaurant-details.dto'
 import { GetAvailableReservationsResponse, ResyGetAvailableReservationsResponse } from './dto/get-available-reservations.dto'
 import { CreateReservationResponse, ResyCreateReservationRequest, ResyCreateReservationResponse } from './dto/create-reservation.dto'
-import { ConfigTokenDetails } from 'src/models/json/config-token-details'
+import { ConfigTokenDetails } from 'src/utilities/json/config-token-details'
 import { BookReservationResponse, ResyBookReservationRequest, ResyBookReservationResponse } from './dto/book-reservation.dto'
 import { CancelReservationResponse, ResyCancelReservationRequest, ResyCancelReservationResponse } from './dto/cancel-reservation.dto'
 import { Curl } from 'node-libcurl'

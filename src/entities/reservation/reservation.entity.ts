@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import { ResybotUser } from '../resybot-user/resybot-user.entity'
 import { Restaurant } from '../restaurant/restaurant.entity'
-import { ReservationStatus } from 'src/models/enums/reservation-status'
-import { TimesOfWeek } from 'src/models/json/times-of-week'
+import { ReservationStatus } from 'src/utilities/enums/reservation-status'
+import { TimesOfWeek } from 'src/utilities/json/times-of-week'
 
 @Entity()
 export class Reservation {

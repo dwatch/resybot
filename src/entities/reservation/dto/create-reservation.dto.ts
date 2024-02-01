@@ -1,7 +1,7 @@
 import { type Restaurant } from 'src/entities/restaurant/restaurant.entity'
 import { type ResybotUser } from 'src/entities/resybot-user/resybot-user.entity'
-import { type ReservationStatus } from 'src/models/enums/reservation-status'
-import { type TimesOfWeek } from 'src/models/json/times-of-week'
+import { type ReservationStatus } from 'src/utilities/enums/reservation-status'
+import { type TimesOfWeek } from 'src/utilities/json/times-of-week'
 
 export class CreateReservationDto {
   user: ResybotUser
