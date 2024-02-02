@@ -23,6 +23,10 @@ export class RestaurantsService {
     return await this.restaurantRepository.findOneBy({ uuid })
   }
 
+  async findOneByVenueId (venueId: string): Promise<Restaurant | null> {
+    return await this.restaurantRepository.findOneBy({ venueId: venueId })
+  }
+
   async remove (uuid: string): Promise<void> {
     await this.restaurantRepository.delete(uuid)
   }

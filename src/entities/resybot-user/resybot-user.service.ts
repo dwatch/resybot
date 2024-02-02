@@ -20,6 +20,10 @@ export class ResybotUserService {
     user.authToken = createUserDto.authToken
     user.paymentMethods = []
     user.reservations = []
+    return await this.save(user)
+  }
+
+  async save (user: ResybotUser): Promise<ResybotUser> {
     return await this.usersRepository.save(user)
   }
 

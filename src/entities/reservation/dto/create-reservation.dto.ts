@@ -1,7 +1,7 @@
 import { type Restaurant } from 'src/entities/restaurant/restaurant.entity'
 import { type ResybotUser } from 'src/entities/resybot-user/resybot-user.entity'
-import { type ReservationStatus } from 'src/utilities/enums/reservation-status'
 import { type TimesOfWeek } from 'src/utilities/json/times-of-week'
+import { ReservationStatus } from '../reservation.entity'
 
 export class CreateReservationDto {
   user: ResybotUser
@@ -10,5 +10,7 @@ export class CreateReservationDto {
   status: ReservationStatus
   unavailableDates: string[]
   desiredTimesOfWeek: TimesOfWeek
-  reservationToken: string | null = null
+  reservationToken?: string | undefined = undefined
+  reservationDay?: string | undefined = undefined
+  reservationTime?: string | undefined = undefined
 }

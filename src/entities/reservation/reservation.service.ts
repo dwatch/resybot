@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Reservation } from './reservation.entity'
+import { Reservation, ReservationStatus } from './reservation.entity'
 import { Repository } from 'typeorm'
 import { type CreateReservationDto } from './dto/create-reservation.dto'
 
@@ -20,11 +20,25 @@ export class ReservationsService {
     reservation.desiredTimesOfWeek = createReservationDto.desiredTimesOfWeek
     reservation.status = createReservationDto.status
     reservation.reservationToken = createReservationDto.reservationToken
+    reservation.reservationDay = createReservationDto.reservationDay
+    reservation.reservationTime = createReservationDto.reservationTime
     return await this.reservationRepository.save(reservation)
   }
 
   async findOne (uuid: string): Promise<Reservation | null> {
     return await this.reservationRepository.findOneBy({ uuid })
+  }
+
+  async findPreexistingReservations (userUuid: string, venueId: string, date: string) : Promise<Reservation[]> {
+    return await this.reservationRepository.createQueryBuilder('reservation')
+      .innerJoin('resybot_user', 'user', 'reservation.userUuid = user.uuid')
+      .innerJoin('restaurant', 'restaurant', 'reservation.restaurantUuid = restaurant.uuid')
+      .where(`user.uuid = '${userUuid}'`)
+      .andWhere(`restaurant.venueId = '${venueId}'`)
+      .andWhere(`reservation.status in ('${ReservationStatus.PENDING}','${ReservationStatus.BOOKED}')`)
+      .andWhere(`reservation.reservationDay is null`)
+      .orWhere(`reservation.reservationDay = '${date}'`)
+      .getMany();
   }
 
   async remove (uuid: string): Promise<void> {

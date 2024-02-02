@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import { ResybotUser } from '../resybot-user/resybot-user.entity'
 import { Restaurant } from '../restaurant/restaurant.entity'
-import { ReservationStatus } from 'src/utilities/enums/reservation-status'
 import { TimesOfWeek } from 'src/utilities/json/times-of-week'
 
 @Entity()
@@ -34,9 +33,19 @@ export class Reservation {
   @Column()
     status!: ReservationStatus
 
-  @Column({ type: 'timestamptz', nullable: true })
-    reservationDate?: Date | undefined = undefined
+  @Column({ type: String, nullable: true })
+    reservationDay: string | undefined = undefined
+
+  @Column({ type: String, nullable: true })
+    reservationTime: string | undefined = undefined
 
   @Column({ type: String, nullable: true })
     reservationToken?: string | undefined = undefined
+}
+
+export enum ReservationStatus {
+  PENDING = 'pending',
+  BOOKED = 'booked',
+  CANCELED = 'canceled',
+  PASSED = 'passed'
 }
