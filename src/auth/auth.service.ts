@@ -26,7 +26,9 @@ export class AuthService {
     const passwordsMatch = compareSync(password, user.password)
     if (!passwordsMatch) { return null }
 
-    return user
+    const resyLoginResponse = await this.resyClient.login(email, password)
+    user.authToken = resyLoginResponse.token
+    return await this.resybotUserService.save(user)
   }
 
   async login(user: ResybotUser) {

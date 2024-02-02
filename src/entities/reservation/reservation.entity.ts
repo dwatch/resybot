@@ -3,7 +3,6 @@ import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Up
 import { ResybotUser } from '../resybot-user/resybot-user.entity'
 import { Restaurant } from '../restaurant/restaurant.entity'
 import { TimesOfWeek } from 'src/utilities/json/times-of-week'
-//import { ReservationStatus } from 'src/utilities/enums/reservation-status'
 
 @Entity()
 export class Reservation {
@@ -34,11 +33,11 @@ export class Reservation {
   @Column()
     status!: ReservationStatus
 
-  @Column()
-    reservationDay: String | undefined = undefined
+  @Column({ type: String, nullable: true })
+    reservationDay: string | undefined = undefined
 
-  @Column()
-    reservationTime: String | undefined = undefined
+  @Column({ type: String, nullable: true })
+    reservationTime: string | undefined = undefined
 
   @Column({ type: String, nullable: true })
     reservationToken?: string | undefined = undefined
