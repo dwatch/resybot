@@ -13,8 +13,8 @@ import { Constants } from 'src/utilities/constants';
 import { ErrorFactory } from 'src/utilities/error-factory';
 import { parseConfigToken } from 'src/utilities/utilities';
 import { CreateReservationDto } from 'src/entities/reservation/dto/create-reservation.dto';
-import { ReservationStatus } from 'src/utilities/enums/reservation-status';
-import moment from 'moment-timezone';
+import { ConfigTokenDetails } from 'src/utilities/json/config-token-details';
+import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
 
 @Controller('booking')
 export class BookingController {
@@ -38,18 +38,18 @@ export class BookingController {
 
   @Post('/book')
   async bookAndPersistReservation (@Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> {
+    let configDetails: ConfigTokenDetails
     let bookedReservationResponse: BookReservationResponse
-    let bookedReservationDate: Date
     let bookedReservationStatus = ReservationStatus.PENDING
     if (body.configToken != null) {
-      const configDetails = parseConfigToken(body.configToken)
-      const reservationDate = moment.tz(`${configDetails.day} ${configDetails.time}`, Constants.DATE_FORMAT, Constants.EST_TZ).toDate()
-      const existingReservations = await this.reservationsService.findPreexistingReservations(body.userUuid, body.venueId, reservationDate)
+      configDetails = parseConfigToken(body.configToken)
+      //const reservationDate = moment.tz(`${configDetails.day} ${configDetails.time}`, Constants.DATE_FORMAT, Constants.EST_TZ).toDate()
+      const existingReservations = await this.reservationsService.findPreexistingReservations(body.userUuid, body.venueId, configDetails.day)
       if (existingReservations.length > 0) {
         throw ErrorFactory.internalServerError("A reservation has already been made. Can't make another one for this")
       }
       bookedReservationResponse = await this.bookingService.bookReservation(body.configToken)
-      bookedReservationDate = reservationDate
+      //bookedReservationDate = reservationDate
       bookedReservationStatus = ReservationStatus.BOOKED
     }
 
@@ -67,7 +67,8 @@ export class BookingController {
       unavailableDates: body.unavailableDates,
       desiredTimesOfWeek: body.desiredTimesOfWeek,
       reservationToken: bookedReservationResponse?.resyToken,
-      reservationDate: bookedReservationDate
+      reservationDay: configDetails.day,
+      reservationTime: configDetails.time
     }
     await this.reservationsService.create(createReservationDto)
     

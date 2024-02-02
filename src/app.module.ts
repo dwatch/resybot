@@ -12,21 +12,12 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
 import { BookingModule } from './booking/booking.module';
+import { dataSourceDetails } from './ormconfig'
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: 'resybot',
-      entities: [],
-      autoLoadEntities: true,
-      synchronize: false
-    }),
+    TypeOrmModule.forRoot(dataSourceDetails),
     ResybotUserModule,
     PaymentMethodsModule,
     RestaurantsModule,
