@@ -1,19 +1,22 @@
-import { Controller, Request, Post, UseGuards, Put, Body } from '@nestjs/common';
+import { Controller, Post, Put, Body, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInAuthGuard } from './local-auth.guard';
 import { Public } from './decorator/public.decorator';
 import { SignupDto } from './dto/signup.dto';
 import { CreateJwtTokenResponse } from './dto/auth.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
-  @UseGuards(SignInAuthGuard)
   @Post('login')
-  async login(@Request() req) {
-    return this.authService.createJwtToken(req.user);
+  async login(@Body() body: LoginDto) {
+    const user = await this.authService.validateUser(body.email, body.password);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return this.authService.createJwtToken(user);
   }
 
   @Public()
