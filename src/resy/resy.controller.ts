@@ -19,8 +19,8 @@ export class ResyController {
   }
 
   @Post('search')
-  async searchForRestaurants (@Body() body: SearchForRestaurantsRequest): Promise<SearchForRestaurantsResponse> {
-    return await this.resyClient.searchForRestaurants(body.query, body.numVenues, body.lat, body.lng)
+  async searchForRestaurants (@Session() session, @Body() body: SearchForRestaurantsRequest): Promise<SearchForRestaurantsResponse> {
+    return await this.resyClient.searchForRestaurants(session.authToken, body.query, body.numVenues, body.lat, body.lng)
   }
 
   @Get('details/:venueId')

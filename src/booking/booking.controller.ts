@@ -24,8 +24,8 @@ export class BookingController {
   ) {}
 
   @Post('findRestaurant')
-  async findRestaurant (@Body() body: FindRestaurantRequest): Promise<SearchForRestaurantsResponse> {
-    return await this.resyClient.searchForRestaurants(body.query, Constants.DEFAULT_NUM_VENUES)
+  async findRestaurant (@Session() session, @Body() body: FindRestaurantRequest): Promise<SearchForRestaurantsResponse> {
+    return await this.resyClient.searchForRestaurants(session.authToken, body.query, Constants.DEFAULT_NUM_VENUES)
   }
 
   @Get('/fullAvailability/:venueId/:partySize')

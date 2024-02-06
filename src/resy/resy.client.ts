@@ -74,7 +74,7 @@ export class ResyClient {
     return this.resyPresenter.convertToLoginResponse(resyResponse)
   }
 
-  async searchForRestaurants(query: string, numVenues: number, lat?: number, lng?: number): Promise<SearchForRestaurantsResponse> {
+  async searchForRestaurants(authToken: string, query: string, numVenues: number, lat?: number, lng?: number): Promise<SearchForRestaurantsResponse> {
     const payload: ResySearchForRestaurantsRequest = {
       "per_page": numVenues,
       "query": query,
@@ -83,9 +83,9 @@ export class ResyClient {
     if (lat !== undefined && lng !== undefined) {
       payload["geo"] = {"latitude": lat, "longitude": lng}
     }
-    const resyResponse = await this.sendPostRequest<ResySearchForRestaurantsRequest, ResySearchForRestaurantsResponse>(
-      this.SEARCH_FOR_RESTAURANTS_URL, 'application/json', payload
-    )
+    const formattedPayload = JSON.stringify(payload)
+    const curlRequest = this.createCurlWithHeaders('application/json', authToken, formattedPayload)
+    const resyResponse = await this.sendCurlRequest<ResySearchForRestaurantsResponse>(curlRequest, this.SEARCH_FOR_RESTAURANTS_URL, null, formattedPayload)
     return this.resyPresenter.convertToSearchForRestaurantsResponse(resyResponse)
   }
 
