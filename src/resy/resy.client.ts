@@ -137,14 +137,14 @@ export class ResyClient {
     return await this.resyPresenter.convertToCreateReservationResponse(resyResponse)
   }
 
-  async bookReservation (bookToken: string): Promise<BookReservationResponse> {
+  async bookReservation (authToken: string, bookToken: string): Promise<BookReservationResponse> {
     const payload: ResyBookReservationRequest = {
       "book_token": bookToken,
       "source_id": process.env.RES_SOURCE_ID!
     }
-    const resyResponse = await this.sendPostRequest<ResyBookReservationRequest, ResyBookReservationResponse>(
-      this.BOOK_RESERVATION_URL, 'application/x-www-form-urlencoded', payload
-    )
+    const formattedPayload = this.urlEncodePayload<ResyBookReservationRequest>(payload)
+    const curlRequest = this.createCurlWithHeaders('application/x-www-form-urlencoded', authToken, formattedPayload)
+    const resyResponse = await this.sendCurlRequest<ResyBookReservationResponse>(curlRequest, this.BOOK_RESERVATION_URL, null, formattedPayload)
     return await this.resyPresenter.convertToBookReservationResponse(resyResponse)
   }
 
@@ -159,6 +159,10 @@ this.CANCEL_RESERVATION_URL, 'application/json', payload
   }
 
   // ======================================================== Request Helper Functions ========================================================
+  private urlEncodePayload<T>(payload: T): string {
+    return Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&')
+  }
+  
   private async sendGetRequest<U> (url: string, contentType: string, params: ParsedUrlQueryInput): Promise<U> {
     const urlWithParams = `${url}?${stringify(params)}`;
     return new Promise((resolve, reject) => {
