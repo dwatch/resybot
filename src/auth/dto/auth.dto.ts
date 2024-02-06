@@ -1,12 +1,7 @@
-export class LoginDto {
-  email: string
+export class CreateJwtTokenDto {
   sub: string
 }
 
-export class CreateJwtTokenRequest {
-  sub: string
-}
-
-export class CreateJwtTokenResponse {
+export class ReturnJwtTokenDto {
   authToken: string
 }

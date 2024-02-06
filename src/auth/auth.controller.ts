@@ -2,7 +2,7 @@ import { Controller, Post, Put, Body, UnauthorizedException } from '@nestjs/comm
 import { AuthService } from './auth.service';
 import { Public } from './decorator/public.decorator';
 import { SignupDto } from './dto/signup.dto';
-import { CreateJwtTokenResponse } from './dto/auth.dto';
+import { ReturnJwtTokenDto } from './dto/auth.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
@@ -21,7 +21,7 @@ export class AuthController {
 
   @Public()
   @Put('signup')
-  async signup(@Body() body: SignupDto): Promise<CreateJwtTokenResponse> {
+  async signup(@Body() body: SignupDto): Promise<ReturnJwtTokenDto> {
     const user = await this.authService.signup(body.email, body.password)
     return this.authService.createJwtToken(user)
   }
