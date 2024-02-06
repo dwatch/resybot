@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from './local.strategy';
 import { ResybotUserModule } from 'src/entities/resybot-user/resybot-user.module';
 import { JwtModule } from '@nestjs/jwt'
 import { JwtStrategy } from './jwt.strategy';
 import { ResyModule } from 'src/resy/resy.module';
 import { PaymentMethodsModule } from 'src/entities/payment-method/payment-method.module';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -19,9 +19,9 @@ import { PaymentMethodsModule } from 'src/entities/payment-method/payment-method
       signOptions: { expiresIn: '24h' }
     })
   ],
+  controllers: [AuthController],
   providers: [
     AuthService, 
-    LocalStrategy,
     JwtStrategy
   ],
   exports: [AuthService]

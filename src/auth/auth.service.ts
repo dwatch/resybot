@@ -7,7 +7,7 @@ import { ResyClient } from 'src/resy/resy.client';
 import { CreateUserDto } from 'src/entities/resybot-user/dto/create-user.dto';
 import { PaymentMethodsService } from 'src/entities/payment-method/payment-method.service';
 import { CreatePaymentMethodDto } from 'src/entities/payment-method/dto/payment-method.dto';
-import { LoginDto } from './dto/auth.dto';
+import { CreateJwtTokenDto, ReturnJwtTokenDto } from './dto/auth.dto';
 import { Constants } from 'src/utilities/constants';
 
 @Injectable()
@@ -31,10 +31,10 @@ export class AuthService {
     return await this.resybotUserService.save(user)
   }
 
-  async login(user: ResybotUser) {
-    const payload: LoginDto = { email: user.email, sub: user.uuid };
+  createJwtToken(user: ResybotUser): ReturnJwtTokenDto {
+    const payload: CreateJwtTokenDto = { sub: user.uuid };
     return {
-      access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
+      authToken: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
     };
   }
 
