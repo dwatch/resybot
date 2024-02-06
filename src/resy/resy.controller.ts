@@ -30,21 +30,23 @@ export class ResyController {
 
   @Get('calendar/:venueId/:partySize/:sd/:ed')
   async getCalendar (
+    @Session() session,
     @Param('venueId') venueId: string,
     @Param('partySize') partySize: number,
     @Param('sd') sd: string,
     @Param('ed') ed: string
   ): Promise<GetCalendarResponse> {
-    return await this.resyClient.getRestaurantCalendar(venueId, partySize, sd, ed)
+    return await this.resyClient.getRestaurantCalendar(session.authToken, venueId, partySize, sd, ed)
   }
 
   @Get('available-reservations/:venueId/:date/:size')
   async getAvailableReservations (
+    @Session() session,
     @Param('venueId') venueId: string,
     @Param('date') date: string,
     @Param('size') size: number
   ): Promise<GetAvailableReservationsResponse> {
-    return await this.resyClient.getAvailableReservations(venueId, date, size)
+    return await this.resyClient.getAvailableReservations(session.authToken, venueId, date, size)
   }
   
   @Post('create-reservation')

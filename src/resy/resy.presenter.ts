@@ -51,7 +51,11 @@ export class ResyPresenter {
   }
 
   async convertToGetAvailableReservationsResponse (response: ResyGetAvailableReservationsResponse): Promise<GetAvailableReservationsResponse> {
-    const slotsObservables = response.results.venues[0].slots.map((slot) => {
+    const slots = response.results.venues[0].slots
+    if (slots.length === 0) {
+      return { slots: [] };
+    }
+    const slotsObservables = slots.map((slot) => {
       return from(Promise.resolve({
         configToken: slot.config.token,
         reservationType: slot.config.type,

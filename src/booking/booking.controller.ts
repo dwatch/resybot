@@ -29,8 +29,8 @@ export class BookingController {
   }
 
   @Get('/fullAvailability/:venueId/:partySize')
-  async getFullRestaurantAvailability (@Param('venueId') venueId: string, @Param('partySize') partySize: number): Promise<FullRestaurantAvailabilityResponse> {
-    return await this.bookingService.getFullRestaurantAvailability(venueId, partySize)
+  async getFullRestaurantAvailability (@Session() session, @Param('venueId') venueId: string, @Param('partySize') partySize: number): Promise<FullRestaurantAvailabilityResponse> {
+    return await this.bookingService.getFullRestaurantAvailability(session.authToken, venueId, partySize)
   }
 
   @Post('/book')

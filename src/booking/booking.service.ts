@@ -14,14 +14,14 @@ export class BookingService {
     return await this.resyClient.bookReservation(createReservationResponse.bookToken)
   }
 
-  async getFullRestaurantAvailability(venueId: string, partySize: number): Promise<FullRestaurantAvailabilityResponse> {
+  async getFullRestaurantAvailability(authToken: string, venueId: string, partySize: number): Promise<FullRestaurantAvailabilityResponse> {
     const today = new Date()
     const startDate = today.toISOString().split("T")[0]
     const endDate = this.addDays(today, Constants.MAX_RESERVATION_LOOKFORWARD_DAYS).toISOString().split("T")[0]
 
-    const allDays = await this.resyClient.getRestaurantCalendar(venueId, partySize, startDate, endDate)
+    const allDays = await this.resyClient.getRestaurantCalendar(authToken, venueId, partySize, startDate, endDate)
     const availableDays = allDays.scheduled.filter( day => day.reservation !== "unavailable" )
-    const availableDatetimePromises = availableDays.map( day => this.resyClient.getAvailableReservations(venueId, day.date, partySize) )
+    const availableDatetimePromises = availableDays.map( day => this.resyClient.getAvailableReservations(authToken, venueId, day.date, partySize) )
     return { 
       days: await Promise.all(availableDatetimePromises) 
     }
