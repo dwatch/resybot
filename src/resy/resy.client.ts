@@ -148,13 +148,15 @@ export class ResyClient {
     return await this.resyPresenter.convertToBookReservationResponse(resyResponse)
   }
 
-  async cancelReservation(resyToken: string): Promise<CancelReservationResponse> {
+  // I think the resyToken needs to be regenerated. It is correctly implemented, but cannot run on its own. Need to further map out the entire flow
+  // This flow is not critical so will leave here for now
+  async cancelReservation(authToken: string, resyToken: string): Promise<CancelReservationResponse> {
     const payload: ResyCancelReservationRequest = {
         "resy_token": resyToken
     }
-    const resyResponse = await this.sendPostRequest<ResyCancelReservationRequest, ResyCancelReservationResponse>(
-this.CANCEL_RESERVATION_URL, 'application/json', payload
-    )
+    const formattedPayload = JSON.stringify(payload)
+    const curlRequest = this.createCurlWithHeaders('application/json', authToken, formattedPayload)
+    const resyResponse = await this.sendCurlRequest<ResyCancelReservationResponse>(curlRequest, this.CANCEL_RESERVATION_URL, null, formattedPayload)
     return await this.resyPresenter.convertToCancelReservationResponse(resyResponse)
   }
 

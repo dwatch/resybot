@@ -60,7 +60,7 @@ export class ResyController {
   }
 
   @Post('cancel-reservation')
-  async cancelReservation (@Body() body: CancelReservationRequest): Promise<CancelReservationResponse> {
-    return await this.resyClient.cancelReservation(body.resyToken)
+  async cancelReservation (@Session() session, @Body() body: CancelReservationRequest): Promise<CancelReservationResponse> {
+    return await this.resyClient.cancelReservation(session.authToken, body.resyToken)
   }
 }
