@@ -9,14 +9,15 @@ import { FullRestaurantAvailabilityResponse } from './dto/full-restaurant-availa
 import { BookAndPersistReservationRequest } from './dto/book-and-persist.dto';
 import { BookReservationResponse } from 'src/resy/dto/book-reservation.dto';
 import { Constants } from 'src/utilities/constants';
-import { ErrorFactory } from 'src/utilities/error-factory';
-import { parseConfigToken } from 'src/utilities/utilities';
 import { CreateReservationDto } from 'src/entities/reservation/dto/create-reservation.dto';
 import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
+import { UtilityFunctions } from 'src/utilities/utility.functions';
+import { ErrorFactory } from 'src/utilities/error-factory';
 
 @Controller('booking')
 export class BookingController {
   constructor(
+    private readonly utilityFunctions: UtilityFunctions,
     private readonly restaurantsService: RestaurantsService,
     private readonly reservationsService: ReservationsService,
     private readonly resyClient: ResyClient,
@@ -49,7 +50,7 @@ export class BookingController {
     }
 
     if (body.configToken != null) {
-      const configDetails = parseConfigToken(body.configToken)
+      const configDetails = this.utilityFunctions.parseConfigToken(body.configToken)
       const existingReservations = await this.reservationsService.findPreexistingReservations(req.user.uuid, body.venueId, configDetails.day)
       if (existingReservations.length > 0) {
         throw ErrorFactory.internalServerError("A reservation has already been made. Can't make another one for this")

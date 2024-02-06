@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import { ResybotUser } from '../resybot-user/resybot-user.entity'
 import { Restaurant } from '../restaurant/restaurant.entity'
-import { TimesOfWeek } from 'src/utilities/json/times-of-week'
+import { TimesOfWeek } from 'src/utilities/dto/times-of-week'
 
 @Entity()
 export class Reservation {

@@ -1,4 +1,4 @@
-import { PaymentMethodDetails } from "src/utilities/json/payment-method-details"
+import { PaymentMethodDetails } from "src/utilities/dto/payment-method-details"
 
 // Used by Resybot (CamelCase)
 export class LoginRequest {
