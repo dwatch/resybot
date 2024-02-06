@@ -6,8 +6,8 @@ import { ResyPresenter } from './resy.presenter'
 import { UtilityModule } from 'src/utilities/utility.module'
 
 @Module({
-  imports: [HttpModule],
-  providers: [UtilityModule, ResyClient, ResyPresenter],
+  imports: [HttpModule, UtilityModule],
+  providers: [ResyClient, ResyPresenter],
   controllers: [ResyController],
   exports: [ResyClient]
 })
