@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Session } from '@nestjs/common'
 import { ResyClient } from './resy.client'
 import { type GetCalendarResponse } from './dto/get-calendar.dto'
 import { LoginRequest, LoginResponse } from './dto/login.dto'
@@ -24,8 +24,8 @@ export class ResyController {
   }
 
   @Get('details/:venueId')
-  async getRestaurantDetails (@Param('venueId') venueId: string): Promise<GetRestaurantDetailsResponse> {
-    return await this.resyClient.getRestaurantDetails(venueId)
+  async getRestaurantDetails (@Session() session, @Param('venueId') venueId: string): Promise<GetRestaurantDetailsResponse> {
+    return await this.resyClient.getRestaurantDetails(session.authToken, venueId)
   }
 
   @Get('calendar/:venueId/:partySize/:sd/:ed')
@@ -48,8 +48,8 @@ export class ResyController {
   }
   
   @Post('create-reservation')
-  async createReservation (@Body() body: CreateReservationRequest): Promise<CreateReservationResponse> {
-    return await this.resyClient.createReservation(body.configId)
+  async createReservation (@Session() session, @Body() body: CreateReservationRequest): Promise<CreateReservationResponse> {
+    return await this.resyClient.createReservation(session.authToken, body.configId)
   }
 
   @Post('book-reservation')

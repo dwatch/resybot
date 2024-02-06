@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Put, Body, UnauthorizedException, Session } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './decorator/public.decorator';
 import { SignupDto } from './dto/signup.dto';
@@ -11,11 +11,12 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  async login(@Body() body: LoginDto) {
+  async login(@Session() session, @Body() body: LoginDto) {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
       throw new UnauthorizedException();
     }
+    session.authToken = user.authToken
     return this.authService.createJwtToken(user);
   }
 

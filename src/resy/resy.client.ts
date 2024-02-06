@@ -14,6 +14,10 @@ import { Curl } from 'node-libcurl'
 import { stringify, ParsedUrlQueryInput } from 'querystring';
 import { parseConfigToken } from 'src/utilities/utilities'
 
+  // const formattedPayload = (contentType === 'application/x-www-form-urlencoded') 
+  // ? Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&')
+  // : JSON.stringify(payload)
+
 @Injectable()
 export class ResyClient {
   constructor (
@@ -85,9 +89,10 @@ export class ResyClient {
     return this.resyPresenter.convertToSearchForRestaurantsResponse(resyResponse)
   }
 
-  async getRestaurantDetails(venueId: string): Promise<GetRestaurantDetailsResponse> {
+  async getRestaurantDetails(authToken: string, venueId: string): Promise<GetRestaurantDetailsResponse> {
     const params = { "venue_id": venueId }
-    const resyResponse = await this.sendGetRequest<ResyGetRestaurantDetailsResponse> (this.GET_RESTAURANT_DETAILS_URL, 'application/json', params)
+    const curlRequest = this.createCurlWithHeaders('application/json', authToken)
+    const resyResponse = await this.sendCurlRequest<ResyGetRestaurantDetailsResponse>(curlRequest, this.GET_RESTAURANT_DETAILS_URL, params)
     return this.resyPresenter.convertToGetRestaurantDetailsResponse(resyResponse)
   }
 
@@ -116,7 +121,7 @@ export class ResyClient {
     return await this.resyPresenter.convertToGetAvailableReservationsResponse(resyResponse)
   }
 
-  async createReservation (configId: string): Promise<CreateReservationResponse> {
+  async createReservation (authToken: string, configId: string): Promise<CreateReservationResponse> {
     const configDetails = parseConfigToken(configId)
     const payload: ResyCreateReservationRequest = {
       "commit": 1, // Needs to be 1 to get a book_token, which is used in bookReservation()
@@ -124,9 +129,9 @@ export class ResyClient {
       "day": configDetails.day,
       "party_size": configDetails.partySize
     }
-    const resyResponse = await this.sendPostRequest<ResyCreateReservationRequest, ResyCreateReservationResponse>(
-      this.CREATE_RESERVATION_URL, 'application/json', payload
-    )
+    const formattedPayload = JSON.stringify(payload)
+    const curlRequest = this.createCurlWithHeaders('application/json', authToken, formattedPayload)
+    const resyResponse = await this.sendCurlRequest<ResyCreateReservationResponse>(curlRequest, this.CREATE_RESERVATION_URL, null, formattedPayload)
     return await this.resyPresenter.convertToCreateReservationResponse(resyResponse)
   }
 
@@ -228,5 +233,61 @@ this.CANCEL_RESERVATION_URL, 'application/json', payload
       headers.push(`Content-Length: ${Buffer.byteLength(payload)}`)
     }
     curl.setOpt(Curl.option.HTTPHEADER, headers);
+  }
+
+  private createCurlWithHeaders (contentType: string, authToken: string, payload: string | null = null): Curl {
+    const curl = new Curl()
+    const headers = [
+      'Accept: */*',
+      `Content-Type: ${contentType}`,
+      `X-Resy-Auth-Token: ${authToken}`,
+      `X-Resy-Universal-Auth: ${authToken}`,
+      `X-Origin: ${this.resyWidget}`,
+      `Origin: ${this.resyWidget}`,
+      `Referer: ${this.resyWidget}`,
+      'Cache-Control: no-cache',
+      `Authorization: ResyAPI api_key="${this.apiKey}"`,
+      `Host: ${this.host}`
+    ]
+    if (payload !== null) {
+      headers.push(`Content-Length: ${Buffer.byteLength(payload)}`)
+    }
+    curl.setOpt(Curl.option.HTTPHEADER, headers);
+    return curl
+  }
+
+  private async sendCurlRequest<U> (
+    curl: Curl, 
+    url: string, 
+    params: ParsedUrlQueryInput | null = null, 
+    formattedPayload: string | null = null
+  ): Promise<U> {
+    return new Promise((resolve, reject) => {
+      const urlWithParams = (params === null) ? url : `${url}?${stringify(params)}`
+      curl.setOpt(Curl.option.URL, urlWithParams)
+
+      if (formattedPayload !== null) {
+        curl.setOpt(Curl.option.POSTFIELDS, formattedPayload)
+      }
+
+      curl.on('end', function (statusCode, body) {
+        this.close()
+        if (statusCode >= 200 && statusCode <= 299) {
+          try {
+            const bodyAsString = Buffer.isBuffer(body) ? body.toString() : body;
+            const parsedBody: U = JSON.parse(bodyAsString);            
+            resolve(parsedBody);  
+          } catch (error) {
+            reject(new Error('Error parsing response body'));
+          }
+        } else {
+          reject(new Error(`Request failed with status ${statusCode}`))
+        }
+      })
+
+      curl.on('error', curl.close.bind(curl))
+
+      curl.perform()
+    })
   }
 }

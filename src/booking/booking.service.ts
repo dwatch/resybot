@@ -9,8 +9,8 @@ export class BookingService {
   constructor(
     private readonly resyClient: ResyClient
   ) {}
-  async bookReservation(configId: string): Promise<BookReservationResponse> {
-    const createReservationResponse = await this.resyClient.createReservation(configId)
+  async bookReservation(authToken: string, configId: string): Promise<BookReservationResponse> {
+    const createReservationResponse = await this.resyClient.createReservation(authToken, configId)
     return await this.resyClient.bookReservation(createReservationResponse.bookToken)
   }
 

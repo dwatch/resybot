@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Request, Session } from '@nestjs/common';
 import { ReservationsService } from 'src/entities/reservation/reservation.service';
 import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
 import { BookingService } from './booking.service';
@@ -34,7 +34,7 @@ export class BookingController {
   }
 
   @Post('/book')
-  async bookAndPersistReservation (@Request() req, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> {    
+  async bookAndPersistReservation (@Session() session, @Request() req, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> {    
     const restaurant = await this.restaurantsService.findOneByVenueId(body.venueId)
     if (restaurant === null) { throw ErrorFactory.notFound(`Can't find restaurant with venueId ${body.venueId}`)}
 
@@ -55,7 +55,7 @@ export class BookingController {
         throw ErrorFactory.internalServerError("A reservation has already been made. Can't make another one for this")
       }
 
-      bookedReservationDetails = await this.bookingService.bookReservation(body.configToken)
+      bookedReservationDetails = await this.bookingService.bookReservation(session.authToken, body.configToken)
       createReservationDto.reservationToken = bookedReservationDetails.resyToken
       createReservationDto.reservationDay = configDetails.day
       createReservationDto.reservationTime = configDetails.time
