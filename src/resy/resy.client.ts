@@ -70,7 +70,9 @@ export class ResyClient {
       "email": email,
       "password": password
     }
-    const resyResponse = await this.sendPostRequest<ResyLoginRequest, ResyLoginResponse>(this.LOGIN_URL, 'application/x-www-form-urlencoded', payload)
+    const formattedPayload = this.urlEncodePayload<ResyLoginRequest>(payload)
+    const curlRequest = this.createCurlWithHeaders('application/x-www-form-urlencoded', null, formattedPayload)
+    const resyResponse = await this.sendCurlRequest<ResyLoginResponse>(curlRequest, this.LOGIN_URL, null, formattedPayload)
     return this.resyPresenter.convertToLoginResponse(resyResponse)
   }
 
@@ -243,13 +245,11 @@ export class ResyClient {
     curl.setOpt(Curl.option.HTTPHEADER, headers);
   }
 
-  private createCurlWithHeaders (contentType: string, authToken: string, payload: string | null = null): Curl {
+  private createCurlWithHeaders (contentType: string, authToken: string | null = null, payload: string | null = null): Curl {
     const curl = new Curl()
     const headers = [
       'Accept: */*',
       `Content-Type: ${contentType}`,
-      `X-Resy-Auth-Token: ${authToken}`,
-      `X-Resy-Universal-Auth: ${authToken}`,
       `X-Origin: ${this.resyWidget}`,
       `Origin: ${this.resyWidget}`,
       `Referer: ${this.resyWidget}`,
@@ -257,6 +257,10 @@ export class ResyClient {
       `Authorization: ResyAPI api_key="${this.apiKey}"`,
       `Host: ${this.host}`
     ]
+    if (authToken !== null) { // Login endpoint doesn't have authToken
+      headers.push(`X-Resy-Auth-Token: ${authToken}`)
+      headers.push(`X-Resy-Universal-Auth: ${authToken}`)
+    }
     if (payload !== null) {
       headers.push(`Content-Length: ${Buffer.byteLength(payload)}`)
     }
