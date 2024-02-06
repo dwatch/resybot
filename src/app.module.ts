@@ -13,11 +13,13 @@ import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
 import { BookingModule } from './booking/booking.module';
 import { typeOrmModuleDetails } from './ormconfig'
+import { UtilityModule } from './utilities/utility.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot(typeOrmModuleDetails),
+    UtilityModule,
     ResybotUserModule,
     PaymentMethodsModule,
     RestaurantsModule,

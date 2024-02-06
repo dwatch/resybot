@@ -1,4 +1,4 @@
-import { type CalendarDate } from 'src/utilities/json/calendar-date'
+import { type CalendarDate } from 'src/utilities/dto/calendar-date'
 
 // Used by Resybot (CamelCase)
 export class GetCalendarResponse {

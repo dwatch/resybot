@@ -10,11 +10,14 @@ import { BookReservationResponse, ResyBookReservationRequest, ResyBookReservatio
 import { CancelReservationResponse, ResyCancelReservationRequest, ResyCancelReservationResponse } from './dto/cancel-reservation.dto'
 import { Curl } from 'node-libcurl'
 import { stringify, ParsedUrlQueryInput } from 'querystring';
-import { parseConfigToken } from 'src/utilities/utilities'
+import { UtilityFunctions } from 'src/utilities/utility.functions'
 
 @Injectable()
 export class ResyClient {
-  constructor ( private readonly resyPresenter: ResyPresenter ) {}
+  constructor ( 
+    private readonly utilityFunctions: UtilityFunctions,
+    private readonly resyPresenter: ResyPresenter
+  ) {}
 
   private readonly baseUrl: string = process.env.BASE_URL
   private readonly apiKey: string = process.env.API_KEY
@@ -36,7 +39,7 @@ export class ResyClient {
       "email": email,
       "password": password
     }
-    const formattedPayload = this.urlEncodePayload<ResyLoginRequest>(payload)
+    const formattedPayload = this.utilityFunctions.urlEncodePayload<ResyLoginRequest>(payload)
     const curlRequest = this.createCurlWithHeaders('application/x-www-form-urlencoded', null, formattedPayload)
     const resyResponse = await this.sendCurlRequest<ResyLoginResponse>(curlRequest, this.LOGIN_URL, null, formattedPayload)
     return this.resyPresenter.convertToLoginResponse(resyResponse)
@@ -92,7 +95,7 @@ export class ResyClient {
   }
 
   async createReservation (resyAuthToken: string, configId: string): Promise<CreateReservationResponse> {
-    const configDetails = parseConfigToken(configId)
+    const configDetails = this.utilityFunctions.parseConfigToken(configId)
     const payload: ResyCreateReservationRequest = {
       "commit": 1, // Needs to be 1 to get a book_token, which is used in bookReservation()
       "config_id": configId,
@@ -110,7 +113,7 @@ export class ResyClient {
       "book_token": bookToken,
       "source_id": process.env.RES_SOURCE_ID!
     }
-    const formattedPayload = this.urlEncodePayload<ResyBookReservationRequest>(payload)
+    const formattedPayload = this.utilityFunctions.urlEncodePayload<ResyBookReservationRequest>(payload)
     const curlRequest = this.createCurlWithHeaders('application/x-www-form-urlencoded', resyAuthToken, formattedPayload)
     const resyResponse = await this.sendCurlRequest<ResyBookReservationResponse>(curlRequest, this.BOOK_RESERVATION_URL, null, formattedPayload)
     return await this.resyPresenter.convertToBookReservationResponse(resyResponse)
@@ -129,10 +132,6 @@ export class ResyClient {
   }
 
   // ======================================================== Request Helper Functions ========================================================
-  private urlEncodePayload<T>(payload: T): string {
-    return Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&')
-  }
-
   private createCurlWithHeaders (contentType: string, resyAuthToken: string | null = null, payload: string | null = null): Curl {
     const curl = new Curl()
     const headers = [

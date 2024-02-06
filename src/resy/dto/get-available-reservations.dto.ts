@@ -1,4 +1,4 @@
-import { ReservationSlot } from "src/utilities/json/reservation-slot";
+import { ReservationSlot } from "src/utilities/dto/reservation-slot";
 
 // Used by Resybot (CamelCase)
 export class GetAvailableReservationsResponse {
