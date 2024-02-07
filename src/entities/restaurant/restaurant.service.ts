@@ -15,7 +15,15 @@ export class RestaurantsService {
     const restaurant = new Restaurant()
     restaurant.name = createRestaurantDto.name
     restaurant.venueId = createRestaurantDto.venueId
-    // restaurant.reservations = []
+    return await this.save(restaurant)
+  }
+
+  async addToPendingCount(restaurant: Restaurant, count: number) {
+    restaurant.pendingReservationCount += count
+    await this.save(restaurant)
+  }
+
+  async save(restaurant: Restaurant): Promise<Restaurant> {
     return await this.restaurantRepository.save(restaurant)
   }
 

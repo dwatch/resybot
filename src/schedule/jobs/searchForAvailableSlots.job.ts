@@ -5,8 +5,8 @@ import { Cron } from '@nestjs/schedule';
 export class SearchForAvailableSlotsJob {
   private readonly logger = new Logger(SearchForAvailableSlotsJob.name);
 
-  @Cron('0 45 23 * * *', { timeZone: 'America/New_York' })
-  run() {
-    
+  @Cron('* */15 0-12 * * *', { timeZone: 'America/New_York' }) // From midnight to noon, for the first of every 15 minutes, execute every second
+  async run() {
+    const now = new Date()
   }
 }

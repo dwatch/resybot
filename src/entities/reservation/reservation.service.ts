@@ -33,7 +33,7 @@ export class ReservationsService {
     return await this.reservationRepository.findOneBy({ uuid })
   }
 
-  async findPreexistingReservations (userUuid: string, venueId: string) : Promise<Reservation[]> {
+  async findExistingPendingReservations (userUuid: string, venueId: string) : Promise<Reservation[]> {
     return await this.reservationRepository.createQueryBuilder('reservation')
       .innerJoin('resybot_user', 'user', 'reservation.userUuid = user.uuid')
       .innerJoin('restaurant', 'restaurant', 'reservation.restaurantUuid = restaurant.uuid')
