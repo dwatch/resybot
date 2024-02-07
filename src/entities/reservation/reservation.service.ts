@@ -39,7 +39,7 @@ export class ReservationsService {
       .innerJoin('restaurant', 'restaurant', 'reservation.restaurantUuid = restaurant.uuid')
       .where(`user.uuid = '${userUuid}'`)
       .andWhere(`restaurant.venueId = '${venueId}'`)
-      .andWhere(`reservation.status in ('${ReservationStatus.PENDING}','${ReservationStatus.BOOKED}')`)
+      .andWhere(`reservation.status = '${ReservationStatus.PENDING}'`)
       .getMany();
   }
 
