@@ -17,6 +17,7 @@ export class AuthController {
       throw new UnauthorizedException();
     }
     session.authToken = user.authToken
+    session.userUuid = user.uuid
     return this.authService.createJwtToken(user);
   }
 
