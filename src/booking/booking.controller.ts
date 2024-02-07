@@ -38,7 +38,7 @@ export class BookingController {
   }
 
   @Post('/book')
-  async bookAndPersistReservation (@Session() session, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> {    
+  async bookAndPersistReservation (@Session() session, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> { 
     const user = await this.resybotUserService.findOne(session.userUuid)
     if (user === null) { throw ErrorFactory.notFound(`Can't find user with uuid ${session.userUuid}`)}
     const restaurant = await this.restaurantsService.findOneByVenueId(body.venueId)
@@ -50,14 +50,17 @@ export class BookingController {
     if (body.configToken !== null) {
       try {
         configDetails = this.utilityFunctions.parseConfigToken(body.configToken)
-        bookedReservationDetails = await this.bookingService.bookReservation(session.authToken, body.configToken)  
+        bookedReservationDetails = await this.bookingService.bookReservation(session.authToken, body.configToken)
       } catch (error) {
         console.log(error) // Fail silently so we can save the reservation as pending. Let async job try again later
       }
     }
 
     // Don't want users creating multiple reservations for a hard-to-get restaurant. Forcefully limit their reservations to 1 per restaurant
+    const pendingReservationCount = +(bookedReservationDetails === undefined)
     await this.bookingService.voidExistingReservations(user.uuid, restaurant.venueId)
+    await this.resybotUserService.addToPendingCount(user, pendingReservationCount)
+    await this.restaurantsService.addToPendingCount(restaurant, pendingReservationCount)
     const createReservationDto: CreateReservationDto = {
       user: user,
       restaurant: restaurant,

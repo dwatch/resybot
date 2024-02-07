@@ -5,12 +5,16 @@ import { Constants } from 'src/utilities/constants';
 import { BookReservationResponse } from 'src/resy/dto/book-reservation.dto';
 import { ReservationsService } from 'src/entities/reservation/reservation.service';
 import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
+import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
+import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
 
 @Injectable()
 export class BookingService {
   constructor(
     private readonly resyClient: ResyClient,
-    private readonly reservationsService: ReservationsService
+    private readonly reservationsService: ReservationsService,
+    private readonly resybotUserService: ResybotUserService,
+    private readonly restaurantsService: RestaurantsService
   ) {}
   async bookReservation(authToken: string, configId: string): Promise<BookReservationResponse> {
     const createReservationResponse = await this.resyClient.createReservation(authToken, configId)
@@ -18,10 +22,12 @@ export class BookingService {
   }
 
   async voidExistingReservations(userUuid: string, venueId: string): Promise<void> {
-    const existingReservation = await this.reservationsService.findPreexistingReservations(userUuid, venueId)
+    const existingReservation = await this.reservationsService.findExistingPendingReservations(userUuid, venueId)
     existingReservation.forEach( reservation => {
       reservation.status = ReservationStatus.CANCELED
       this.reservationsService.save(reservation)
+      this.resybotUserService.addToPendingCount(reservation.user, -1)
+      this.restaurantsService.addToPendingCount(reservation.restaurant, -1)
     })
   }
 

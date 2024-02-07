@@ -15,7 +15,15 @@ export class RestaurantsService {
     const restaurant = new Restaurant()
     restaurant.name = createRestaurantDto.name
     restaurant.venueId = createRestaurantDto.venueId
-    // restaurant.reservations = []
+    return await this.save(restaurant)
+  }
+
+  async addToPendingCount(restaurant: Restaurant, count: number) {
+    restaurant.pendingReservationCount += count
+    await this.save(restaurant)
+  }
+
+  async save(restaurant: Restaurant): Promise<Restaurant> {
     return await this.restaurantRepository.save(restaurant)
   }
 
@@ -25,6 +33,11 @@ export class RestaurantsService {
 
   async findOneByVenueId (venueId: string): Promise<Restaurant | null> {
     return await this.restaurantRepository.findOneBy({ venueId: venueId })
+  }
+
+  async findAllWithPendingReservations (): Promise<Restaurant[]> {
+    return await this.restaurantRepository.createQueryBuilder('restaurant')
+      .where('restaurant.pendingReservationCount > 0').getMany()
   }
 
   async remove (uuid: string): Promise<void> {
