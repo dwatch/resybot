@@ -35,6 +35,11 @@ export class RestaurantsService {
     return await this.restaurantRepository.findOneBy({ venueId: venueId })
   }
 
+  async findAllWithPendingReservations (): Promise<Restaurant[]> {
+    return await this.restaurantRepository.createQueryBuilder('restaurant')
+      .where('restaurant.pendingReservationCount > 0').getMany()
+  }
+
   async remove (uuid: string): Promise<void> {
     await this.restaurantRepository.delete(uuid)
   }
