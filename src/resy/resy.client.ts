@@ -11,6 +11,7 @@ import { CancelReservationResponse, ResyCancelReservationRequest, ResyCancelRese
 import { Curl } from 'node-libcurl'
 import { stringify, ParsedUrlQueryInput } from 'querystring';
 import { UtilityFunctions } from 'src/utilities/utility.functions'
+import { ErrorFactory } from 'src/utilities/error-factory'
 
 @Injectable()
 export class ResyClient {
@@ -179,6 +180,8 @@ export class ResyClient {
           } catch (error) {
             reject(new Error('Error parsing response body'));
           }
+        } else if (statusCode == 412) {
+          reject(ErrorFactory.reservationConflict())
         } else {
           reject(new Error(`Request failed with status ${statusCode}`))
         }

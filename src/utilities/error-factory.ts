@@ -44,7 +44,11 @@ export class ErrorFactory {
 
   // Resy Specific Errors
   static resyClientError(functionName: string) {
-    return this.serviceUnavailable(`Resy client error in ${functionName}`)
+    return new ResyError(`Resy client error in ${functionName}`, 500)
+  }
+
+  static reservationConflict(message: string = "Reservation Conflict") {
+    return new ResyError(message, 412);
   }
 }
 
@@ -56,5 +60,15 @@ export class HttpError extends Error {
     super(message);
     this.name = "HttpError";
     this.statusCode = statusCode;
+  }
+}
+
+export class ResyError extends HttpError {
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(message, statusCode);
+    this.name = "ResyError";
+    this.statusCode = statusCode
   }
 }

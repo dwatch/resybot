@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Request, Session } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Session } from '@nestjs/common';
 import { ReservationsService } from 'src/entities/reservation/reservation.service';
 import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
 import { BookingService } from './booking.service';
@@ -13,6 +13,8 @@ import { CreateReservationDto } from 'src/entities/reservation/dto/create-reserv
 import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
 import { UtilityFunctions } from 'src/utilities/utility.functions';
 import { ErrorFactory } from 'src/utilities/error-factory';
+import { ConfigTokenDetails } from 'src/utilities/dto/config-token-details';
+import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
 
 @Controller('booking')
 export class BookingController {
@@ -20,6 +22,7 @@ export class BookingController {
     private readonly utilityFunctions: UtilityFunctions,
     private readonly restaurantsService: RestaurantsService,
     private readonly reservationsService: ReservationsService,
+    private readonly resybotUserService: ResybotUserService,
     private readonly resyClient: ResyClient,
     private readonly bookingService: BookingService
   ) {}
@@ -35,35 +38,39 @@ export class BookingController {
   }
 
   @Post('/book')
-  async bookAndPersistReservation (@Session() session, @Request() req, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> {    
+  async bookAndPersistReservation (@Session() session, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> {    
+    const user = await this.resybotUserService.findOne(session.userUuid)
+    if (user === null) { throw ErrorFactory.notFound(`Can't find user with uuid ${session.userUuid}`)}
     const restaurant = await this.restaurantsService.findOneByVenueId(body.venueId)
     if (restaurant === null) { throw ErrorFactory.notFound(`Can't find restaurant with venueId ${body.venueId}`)}
 
+    // Assume every booking is a race against other bots. If there's a config, prioritize booking it first
     let bookedReservationDetails: BookReservationResponse
+    let configDetails: ConfigTokenDetails
+    if (body.configToken !== null) {
+      try {
+        configDetails = this.utilityFunctions.parseConfigToken(body.configToken)
+        bookedReservationDetails = await this.bookingService.bookReservation(session.authToken, body.configToken)  
+      } catch (error) {
+        console.log(error) // Fail silently so we can save the reservation as pending. Let async job try again later
+      }
+    }
+
+    // Don't want users creating multiple reservations for a hard-to-get restaurant. Forcefully limit their reservations to 1 per restaurant
+    await this.bookingService.voidExistingReservations(user.uuid, restaurant.venueId)
     const createReservationDto: CreateReservationDto = {
-      user: req.user,
+      user: user,
       restaurant: restaurant,
       partySize: body.partySize,
-      status: ReservationStatus.PENDING,
+      status: (bookedReservationDetails !== undefined) ? ReservationStatus.BOOKED : ReservationStatus.PENDING,
       unavailableDates: body.unavailableDates,
-      desiredTimesOfWeek: body.desiredTimesOfWeek
+      desiredTimesOfWeek: body.desiredTimesOfWeek,
+      reservationToken: bookedReservationDetails?.resyToken,
+      reservationDay: (bookedReservationDetails !== undefined) ? configDetails.day : undefined,
+      reservationTime: (bookedReservationDetails !== undefined) ? configDetails.time : undefined
     }
-
-    if (body.configToken != null) {
-      const configDetails = this.utilityFunctions.parseConfigToken(body.configToken)
-      const existingReservations = await this.reservationsService.findPreexistingReservations(req.user.uuid, body.venueId, configDetails.day)
-      if (existingReservations.length > 0) {
-        throw ErrorFactory.internalServerError("A reservation has already been made. Can't make another one for this")
-      }
-
-      bookedReservationDetails = await this.bookingService.bookReservation(session.authToken, body.configToken)
-      createReservationDto.reservationToken = bookedReservationDetails.resyToken
-      createReservationDto.reservationDay = configDetails.day
-      createReservationDto.reservationTime = configDetails.time
-    }
-
     await this.reservationsService.create(createReservationDto)
-    
+
     return bookedReservationDetails
   }
 }
