@@ -16,4 +16,4 @@ import { ReservationsModule } from 'src/entities/reservation/reservation.module'
     SearchForAvailableSlotsJob
   ]
 })
-export class ScheduleModule {}
+export class CronModule {}
