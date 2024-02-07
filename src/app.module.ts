@@ -15,7 +15,7 @@ import { BookingModule } from './booking/booking.module'
 import { typeOrmModuleDetails } from './ormconfig'
 import { UtilityModule } from './utilities/utility.module'
 import { ScheduleModule } from '@nestjs/schedule'
-import { ScheduleModule } from './schedule/schedule.module';
+import { CronModule } from './cron/cron.module'
 
 
 @Module({
@@ -31,7 +31,7 @@ import { ScheduleModule } from './schedule/schedule.module';
     ResyModule,
     AuthModule,
     BookingModule,
-    ScheduleModule
+    CronModule
   ],
   controllers: [AppController],
   providers: [AppService, {provide: APP_GUARD, useClass: JwtAuthGuard}]
