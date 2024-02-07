@@ -43,6 +43,13 @@ export class ReservationsService {
       .getMany();
   }
 
+  async findPassedReservations(time: string) : Promise<Reservation[]> {
+    return await this.reservationRepository.createQueryBuilder('reservation')
+      .where(`reservation.createdAt <= '${time}`)
+      .andWhere(`reservation.status = '${ReservationStatus.BOOKED}'`)
+      .getMany()
+  }
+  
   async remove (uuid: string): Promise<void> {
     await this.reservationRepository.delete(uuid)
   }
