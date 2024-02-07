@@ -3,15 +3,26 @@ import { ResyClient } from 'src/resy/resy.client';
 import { FullRestaurantAvailabilityResponse } from './dto/full-restaurant-availability.dto';
 import { Constants } from 'src/utilities/constants';
 import { BookReservationResponse } from 'src/resy/dto/book-reservation.dto';
+import { ReservationsService } from 'src/entities/reservation/reservation.service';
+import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
 
 @Injectable()
 export class BookingService {
   constructor(
-    private readonly resyClient: ResyClient
+    private readonly resyClient: ResyClient,
+    private readonly reservationsService: ReservationsService
   ) {}
   async bookReservation(authToken: string, configId: string): Promise<BookReservationResponse> {
     const createReservationResponse = await this.resyClient.createReservation(authToken, configId)
     return await this.resyClient.bookReservation(authToken, createReservationResponse.bookToken)
+  }
+
+  async voidExistingReservations(userUuid: string, venueId: string): Promise<void> {
+    const existingReservation = await this.reservationsService.findPreexistingReservations(userUuid, venueId)
+    existingReservation.forEach( reservation => {
+      reservation.status = ReservationStatus.CANCELED
+      this.reservationsService.save(reservation)
+    })
   }
 
   async getFullRestaurantAvailability(authToken: string, venueId: string, partySize: number): Promise<FullRestaurantAvailabilityResponse> {

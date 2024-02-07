@@ -44,6 +44,7 @@ export class BookingController {
     const restaurant = await this.restaurantsService.findOneByVenueId(body.venueId)
     if (restaurant === null) { throw ErrorFactory.notFound(`Can't find restaurant with venueId ${body.venueId}`)}
 
+    // Assume every booking is a race against other bots. If there's a config, prioritize booking it first
     let bookedReservationDetails: BookReservationResponse
     let configDetails: ConfigTokenDetails
     if (body.configToken !== null) {
@@ -55,25 +56,18 @@ export class BookingController {
       }
     }
 
-    const existingReservation = await this.reservationsService.findPreexistingReservations(user.uuid, restaurant.venueId)
-    existingReservation.forEach( reservation => {
-      reservation.status = ReservationStatus.CANCELED
-      this.reservationsService.save(reservation)
-    })
-
+    // Don't want users creating multiple reservations for a hard-to-get restaurant. Forcefully limit their reservations to 1 per restaurant
+    await this.bookingService.voidExistingReservations(user.uuid, restaurant.venueId)
     const createReservationDto: CreateReservationDto = {
       user: user,
       restaurant: restaurant,
       partySize: body.partySize,
-      status: ReservationStatus.PENDING,
+      status: (bookedReservationDetails !== undefined) ? ReservationStatus.BOOKED : ReservationStatus.PENDING,
       unavailableDates: body.unavailableDates,
-      desiredTimesOfWeek: body.desiredTimesOfWeek
-    }
-    if (bookedReservationDetails !== undefined) { // Means the reservation was successfully booked
-      createReservationDto.status = ReservationStatus.BOOKED
-      createReservationDto.reservationToken = bookedReservationDetails.resyToken
-      createReservationDto.reservationDay = configDetails.day
-      createReservationDto.reservationTime = configDetails.time
+      desiredTimesOfWeek: body.desiredTimesOfWeek,
+      reservationToken: bookedReservationDetails?.resyToken,
+      reservationDay: (bookedReservationDetails !== undefined) ? configDetails.day : undefined,
+      reservationTime: (bookedReservationDetails !== undefined) ? configDetails.time : undefined
     }
     await this.reservationsService.create(createReservationDto)
 
