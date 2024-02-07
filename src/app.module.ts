@@ -8,17 +8,21 @@ import { PaymentMethodsModule } from './entities/payment-method/payment-method.m
 import { RestaurantsModule } from './entities/restaurant/restaurant.module'
 import { ReservationsModule } from './entities/reservation/reservation.module'
 import { ResyModule } from './resy/resy.module'
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './auth/auth.module'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
-import { BookingModule } from './booking/booking.module';
+import { BookingModule } from './booking/booking.module'
 import { typeOrmModuleDetails } from './ormconfig'
 import { UtilityModule } from './utilities/utility.module'
+import { ScheduleModule } from '@nestjs/schedule'
+import { ScheduleModule } from './schedule/schedule.module';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot(typeOrmModuleDetails),
+    ScheduleModule.forRoot(),
     UtilityModule,
     ResybotUserModule,
     PaymentMethodsModule,
@@ -26,7 +30,8 @@ import { UtilityModule } from './utilities/utility.module'
     ReservationsModule,
     ResyModule,
     AuthModule,
-    BookingModule
+    BookingModule,
+    ScheduleModule
   ],
   controllers: [AppController],
   providers: [AppService, {provide: APP_GUARD, useClass: JwtAuthGuard}]
