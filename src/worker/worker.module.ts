@@ -5,10 +5,12 @@ import { WorkerService } from './worker.service';
 import { ResyModule } from 'src/resy/resy.module';
 import { WorkerController } from './worker.controller';
 import { UtilityModule } from 'src/utilities/utility.module';
+import { RestaurantsModule } from 'src/entities/restaurant/restaurant.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: 'checkForNewDay' }),
+    RestaurantsModule,
     ResyModule,
     UtilityModule
   ],

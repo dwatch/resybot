@@ -1,5 +1,7 @@
+import { Restaurant } from "src/entities/restaurant/restaurant.entity"
+
 export class CheckForNewDayDto {
-  venueId: string
+  restaurant: Restaurant
   startDate: string
   endDate: string
 }

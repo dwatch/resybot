@@ -25,9 +25,9 @@ export class Restaurant {
   @Column({ default: 0 })
     pendingReservationCount: number = 0
 
-  @Column({ type: 'timestamptz', nullable: true })
-    newReservationReleaseTime: Date | undefined = undefined
+  @Column({ nullable: true })
+    newReservationReleaseTime: string | undefined = undefined
 
-  @Column({ type: 'timestamptz', nullable: true })
-    lastCheckedDate: Date | undefined = undefined
+  @Column({ nullable: true })
+    lastCheckedDate: string | undefined = undefined
 }

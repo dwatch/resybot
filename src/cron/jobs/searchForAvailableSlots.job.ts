@@ -22,7 +22,7 @@ export class SearchForAvailableSlotsJob {
     const restaurantsWithPendingReservations = await this.restaurantsService.findAllWithPendingReservations()
     const checkForNewDayPromises = restaurantsWithPendingReservations.map( async restaurant => {
       const data: CheckForNewDayDto = { 
-        "venueId": restaurant.venueId,
+        "restaurant": restaurant,
         "startDate": searchPeriod[0],
         "endDate": searchPeriod[1]
       }

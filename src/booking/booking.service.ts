@@ -35,7 +35,7 @@ export class BookingService {
 
   async getFullRestaurantAvailability(authToken: string, venueId: string, partySize: number): Promise<FullRestaurantAvailabilityResponse> {
     const searchPeriod = this.utilityFunctions.getCalendarPeriod(new Date(), Constants.MAX_RESERVATION_LOOKFORWARD_DAYS)
-    const allDays = await this.resyClient.getRestaurantCalendar(authToken, venueId, partySize, searchPeriod[0], searchPeriod[1])
+    const allDays = await this.resyClient.getRestaurantCalendar(venueId, partySize, searchPeriod[0], searchPeriod[1])
     const availableDays = allDays.scheduled.filter( day => day.reservation !== "unavailable" )
     const availableDatetimePromises = availableDays.map( day => this.resyClient.getAvailableReservations(authToken, venueId, day.date, partySize) )
     return { 

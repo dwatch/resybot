@@ -6,6 +6,7 @@ import { ResyModule } from 'src/resy/resy.module';
 import { ReservationsModule } from 'src/entities/reservation/reservation.module';
 import { WorkerModule } from 'src/worker/worker.module';
 import { RestaurantsModule } from 'src/entities/restaurant/restaurant.module';
+import { UtilityModule } from 'src/utilities/utility.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { RestaurantsModule } from 'src/entities/restaurant/restaurant.module';
     RestaurantsModule,
     ReservationsModule,
     ResyModule,
-    WorkerModule
+    WorkerModule,
+    UtilityModule
   ],
   providers: [
     RetirePassedReservationsJob,
