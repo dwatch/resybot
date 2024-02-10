@@ -4,11 +4,13 @@ import { CheckForNewDayWorker } from './workers/checkForNewDay.worker';
 import { WorkerService } from './worker.service';
 import { ResyModule } from 'src/resy/resy.module';
 import { WorkerController } from './worker.controller';
+import { UtilityModule } from 'src/utilities/utility.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: 'checkForNewDay' }),
-    ResyModule
+    ResyModule,
+    UtilityModule
   ],
   providers: [
     WorkerService,
