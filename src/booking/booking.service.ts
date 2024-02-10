@@ -7,6 +7,7 @@ import { ReservationsService } from 'src/entities/reservation/reservation.servic
 import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
 import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
 import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
+import { UtilityFunctions } from 'src/utilities/utility.functions';
 
 @Injectable()
 export class BookingService {
@@ -14,7 +15,8 @@ export class BookingService {
     private readonly resyClient: ResyClient,
     private readonly reservationsService: ReservationsService,
     private readonly resybotUserService: ResybotUserService,
-    private readonly restaurantsService: RestaurantsService
+    private readonly restaurantsService: RestaurantsService,
+    private readonly utilityFunctions: UtilityFunctions
   ) {}
   async bookReservation(authToken: string, configId: string): Promise<BookReservationResponse> {
     const createReservationResponse = await this.resyClient.createReservation(authToken, configId)
@@ -32,21 +34,12 @@ export class BookingService {
   }
 
   async getFullRestaurantAvailability(authToken: string, venueId: string, partySize: number): Promise<FullRestaurantAvailabilityResponse> {
-    const today = new Date()
-    const startDate = today.toISOString().split("T")[0]
-    const endDate = this.addDays(today, Constants.MAX_RESERVATION_LOOKFORWARD_DAYS).toISOString().split("T")[0]
-
-    const allDays = await this.resyClient.getRestaurantCalendar(authToken, venueId, partySize, startDate, endDate)
+    const searchPeriod = this.utilityFunctions.getCalendarPeriod(new Date(), Constants.MAX_RESERVATION_LOOKFORWARD_DAYS)
+    const allDays = await this.resyClient.getRestaurantCalendar(venueId, partySize, searchPeriod[0], searchPeriod[1])
     const availableDays = allDays.scheduled.filter( day => day.reservation !== "unavailable" )
     const availableDatetimePromises = availableDays.map( day => this.resyClient.getAvailableReservations(authToken, venueId, day.date, partySize) )
     return { 
       days: await Promise.all(availableDatetimePromises) 
     }
-  }
-
-  private addDays(date: Date, days: number): Date {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
   }
 }

@@ -16,6 +16,8 @@ import { typeOrmModuleDetails } from './ormconfig'
 import { UtilityModule } from './utilities/utility.module'
 import { ScheduleModule } from '@nestjs/schedule'
 import { CronModule } from './cron/cron.module'
+import { WorkerModule } from './worker/worker.module';
+import { BullModule } from '@nestjs/bull'
 
 
 @Module({
@@ -23,6 +25,7 @@ import { CronModule } from './cron/cron.module'
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot(typeOrmModuleDetails),
     ScheduleModule.forRoot(),
+    BullModule.forRoot({ redis: { host: 'localhost', port: 6379 } }),
     UtilityModule,
     ResybotUserModule,
     PaymentMethodsModule,
@@ -31,7 +34,8 @@ import { CronModule } from './cron/cron.module'
     ResyModule,
     AuthModule,
     BookingModule,
-    CronModule
+    CronModule,
+    WorkerModule
   ],
   controllers: [AppController],
   providers: [AppService, {provide: APP_GUARD, useClass: JwtAuthGuard}]

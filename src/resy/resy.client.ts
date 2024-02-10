@@ -68,14 +68,14 @@ export class ResyClient {
     return this.resyPresenter.convertToGetRestaurantDetailsResponse(resyResponse)
   }
 
-  async getRestaurantCalendar (resyAuthToken: string, venueId: string, partySize: number, sd: string, ed: string): Promise<GetCalendarResponse> {
+  async getRestaurantCalendar (venueId: string, partySize: number, sd: string, ed: string): Promise<GetCalendarResponse> {
     const params = {
       venue_id: venueId,
       num_seats: partySize,
       start_date: sd,
       end_date: ed
     }
-    const curlRequest = this.createCurlWithHeaders('application/json', resyAuthToken)
+    const curlRequest = this.createCurlWithHeaders('application/json')
     const resyResponse = await this.sendCurlRequest<ResyGetCalendarResponse>(curlRequest, this.GET_CALENDAR_URL, params)
     return await this.resyPresenter.convertToGetCalendarResponse(resyResponse)
   }
