@@ -10,6 +10,7 @@ import { RestaurantsModule } from 'src/entities/restaurant/restaurant.module';
 @Module({
   imports: [
     BullModule.registerQueue({ name: 'checkForNewDay' }),
+    BullModule.registerQueue({ name: 'bookFirstAvailableSlot' }),
     RestaurantsModule,
     ResyModule,
     UtilityModule

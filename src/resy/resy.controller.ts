@@ -40,12 +40,11 @@ export class ResyController {
 
   @Get('available-reservations/:venueId/:date/:size')
   async getAvailableReservations (
-    @Session() session,
     @Param('venueId') venueId: string,
     @Param('date') date: string,
     @Param('size') size: number
   ): Promise<GetAvailableReservationsResponse> {
-    return await this.resyClient.getAvailableReservations(session.authToken, venueId, date, size)
+    return await this.resyClient.getAvailableReservations(venueId, date, size)
   }
   
   @Post('create-reservation')

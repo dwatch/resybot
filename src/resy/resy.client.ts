@@ -80,7 +80,7 @@ export class ResyClient {
     return await this.resyPresenter.convertToGetCalendarResponse(resyResponse)
   }
 
-  async getAvailableReservations (resyAuthToken: string, venueId: string, date: string, partySize: number): Promise<GetAvailableReservationsResponse> {
+  async getAvailableReservations (venueId: string, date: string, partySize: number): Promise<GetAvailableReservationsResponse> {
     const params = {
       "day": date,
       "lat": 0,
@@ -90,7 +90,7 @@ export class ResyClient {
       "exclude_non_discoverable": true,
       "sort_by": "available"
     }
-    const curlRequest = this.createCurlWithHeaders('application/json', resyAuthToken)
+    const curlRequest = this.createCurlWithHeaders('application/json')
     const resyResponse = await this.sendCurlRequest<ResyGetAvailableReservationsResponse>(curlRequest, this.GET_AVAILABLE_RESERVATIONS_URL, params)
     return await this.resyPresenter.convertToGetAvailableReservationsResponse(resyResponse)
   }
