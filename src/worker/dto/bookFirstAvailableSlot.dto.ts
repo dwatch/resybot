@@ -1,5 +1,6 @@
-import { Restaurant } from "src/entities/restaurant/restaurant.entity";
+import { Reservation } from "src/entities/reservation/reservation.entity";
 
 export class BookFirstAvailableSlotDto {
-  restaurant: Restaurant
+  reservation: Reservation
+  date: string
 }

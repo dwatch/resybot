@@ -33,6 +33,14 @@ export class ReservationsService {
     return await this.reservationRepository.findOneBy({ uuid })
   }
 
+  async findPendingReservationsByRestaurant (venueId: string) : Promise<Reservation[]> {
+    return await this.reservationRepository.createQueryBuilder('reservation')
+      .innerJoin('restaurant', 'restaurant', 'reservation.restaurantUuid = restaurant.uuid')
+      .where(`restaurant.venueId = '${venueId}'`)
+      .andWhere(`reservation.status = '${ReservationStatus.PENDING}'`)
+      .getMany()
+  }
+
   async findExistingPendingReservations (userUuid: string, venueId: string) : Promise<Reservation[]> {
     return await this.reservationRepository.createQueryBuilder('reservation')
       .innerJoin('resybot_user', 'user', 'reservation.userUuid = user.uuid')
@@ -40,7 +48,7 @@ export class ReservationsService {
       .where(`user.uuid = '${userUuid}'`)
       .andWhere(`restaurant.venueId = '${venueId}'`)
       .andWhere(`reservation.status = '${ReservationStatus.PENDING}'`)
-      .getMany();
+      .getMany()
   }
 
   async findPassedReservations(time: string) : Promise<Reservation[]> {
