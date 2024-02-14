@@ -61,9 +61,9 @@ export class ResyClient {
     return this.resyPresenter.convertToSearchForRestaurantsResponse(resyResponse)
   }
 
-  async getRestaurantDetails(resyAuthToken: string, venueId: string): Promise<GetRestaurantDetailsResponse> {
+  async getRestaurantDetails(venueId: string): Promise<GetRestaurantDetailsResponse> {
     const params = { "venue_id": venueId }
-    const curlRequest = this.createCurlWithHeaders('application/json', resyAuthToken)
+    const curlRequest = this.createCurlWithHeaders('application/json')
     const resyResponse = await this.sendCurlRequest<ResyGetRestaurantDetailsResponse>(curlRequest, this.GET_RESTAURANT_DETAILS_URL, params)
     return this.resyPresenter.convertToGetRestaurantDetailsResponse(resyResponse)
   }
