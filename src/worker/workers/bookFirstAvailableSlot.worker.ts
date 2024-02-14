@@ -27,7 +27,7 @@ export class BookFirstAvailableSlotWorker {
     // See if the user wants this day. If not, then end run
     const dayOfWeek = new Date(data.date).getDay()
     const desiredSlots = reservation.desiredTimesOfWeek[dayOfWeek]
-    if (desiredSlots.length == 0) { return }
+    if (desiredSlots.length == 0 || reservation.unavailableDates.includes(data.date)) { return }
 
     // Pull availableSlots. Filter for matching times
     const availableSlots = await this.resyClient.getAvailableReservations(venueId, data.date, reservation.partySize)
