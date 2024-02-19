@@ -8,6 +8,7 @@ import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
 import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
 import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
 import { UtilityFunctions } from 'src/utilities/utility.functions';
+import { ErrorFactory } from 'src/utilities/error-factory';
 
 @Injectable()
 export class BookingService {
@@ -28,8 +29,8 @@ export class BookingService {
     existingReservation.forEach( reservation => {
       reservation.status = ReservationStatus.CANCELED
       this.reservationsService.save(reservation)
-      this.resybotUserService.addToPendingCount(reservation.user, -1)
-      this.restaurantsService.addToPendingCount(reservation.restaurant, -1)
+      this.resybotUserService.incrementPendingCount(reservation.user, 1)
+      this.restaurantsService.incrementPendingCount(reservation.restaurant, 1)
     })
   }
 
@@ -41,5 +42,18 @@ export class BookingService {
     return { 
       days: await Promise.all(availableDatetimePromises) 
     }
+  }
+
+  async cancelPendingReservation(reservationUuid: string): Promise<void> {
+    const reservation = await this.reservationsService.findOne(reservationUuid)
+    if (reservation.status === ReservationStatus.BOOKED) {
+      throw ErrorFactory.badRequest(`Reservation ${reservationUuid} is already booked. You'll have to cancel on Resy`)
+    }
+    if (reservation.status === ReservationStatus.PENDING) {
+      this.restaurantsService.decrementPendingCount(reservation.restaurant, 1)
+      this.resybotUserService.decrementPendingCount(reservation.user, 1)
+    }
+    reservation.status = ReservationStatus.CANCELED
+    this.reservationsService.save(reservation)
   }
 }

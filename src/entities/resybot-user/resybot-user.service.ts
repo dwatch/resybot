@@ -23,8 +23,13 @@ export class ResybotUserService {
     return await this.save(user)
   }
 
-  async addToPendingCount(user: ResybotUser, count: number) {
+  async incrementPendingCount(user: ResybotUser, count: number) {
     user.pendingReservationCount += count
+    await this.save(user)
+  }
+
+  async decrementPendingCount(user: ResybotUser, count: number) {
+    user.pendingReservationCount -= count
     await this.save(user)
   }
 

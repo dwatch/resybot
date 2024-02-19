@@ -15,6 +15,7 @@ import { UtilityFunctions } from 'src/utilities/utility.functions';
 import { ErrorFactory } from 'src/utilities/error-factory';
 import { ConfigTokenDetails } from 'src/utilities/dto/config-token-details';
 import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
+import { CancelReservationRequest } from 'src/booking/dto/cancel-reservation.dto';
 
 @Controller('booking')
 export class BookingController {
@@ -42,6 +43,11 @@ export class BookingController {
     return await this.bookingService.getFullRestaurantAvailability(venueId, partySize)
   }
 
+  @Post('/cancel')
+  async cancelReservation (@Body() body: CancelReservationRequest): Promise<void> {
+    return await this.bookingService.cancelPendingReservation(body.reservationUuid)
+  }
+
   @Post('/book')
   async bookAndPersistReservation (@Session() session, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> { 
     const user = await this.resybotUserService.findOne(session.userUuid)
@@ -67,8 +73,8 @@ export class BookingController {
     // Don't want users creating multiple reservations for a hard-to-get restaurant. Forcefully limit their reservations to 1 per restaurant
     const pendingReservationCount = +(bookedReservationDetails === undefined)
     await this.bookingService.voidExistingReservations(user.uuid, restaurant.venueId)
-    await this.resybotUserService.addToPendingCount(user, pendingReservationCount)
-    await this.restaurantsService.addToPendingCount(restaurant, pendingReservationCount)
+    await this.resybotUserService.incrementPendingCount(user, pendingReservationCount)
+    await this.restaurantsService.incrementPendingCount(restaurant, pendingReservationCount)
     const createReservationDto: CreateReservationDto = {
       user: user,
       restaurant: restaurant,
@@ -84,4 +90,6 @@ export class BookingController {
 
     return bookedReservationDetails
   }
+
+
 }

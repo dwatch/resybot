@@ -18,8 +18,13 @@ export class RestaurantsService {
     return await this.save(restaurant)
   }
 
-  async addToPendingCount(restaurant: Restaurant, count: number) {
+  async incrementPendingCount(restaurant: Restaurant, count: number) {
     restaurant.pendingReservationCount += count
+    await this.save(restaurant)
+  }
+
+  async decrementPendingCount(restaurant: Restaurant, count: number) {
+    restaurant.pendingReservationCount -= count
     await this.save(restaurant)
   }
 
