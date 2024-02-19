@@ -26,7 +26,7 @@ export class SearchForAvailableSlotsJob {
         "startDate": searchPeriod[0],
         "endDate": searchPeriod[1]
       }
-      await this.workerService.triggerCheckForNewDayDto(data)
+      await this.workerService.triggerCheckForNewDay(data)
     })
     await Promise.all(checkForNewDayPromises)
   }

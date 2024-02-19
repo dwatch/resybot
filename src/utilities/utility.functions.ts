@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common"
 import { ConfigTokenDetails } from "./dto/config-token-details"
-import { Constants } from "./constants"
 
 @Injectable()
 export class UtilityFunctions {
@@ -17,6 +16,13 @@ export class UtilityFunctions {
 
   urlEncodePayload<T>(payload: T): string {
     return Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&')
+  }
+
+  // This assumes Resy only releases on a whole minute
+  convertDateToResyTime(date: Date): string {
+    const hour = date.getHours
+    const minutes = date.getMinutes
+    return `${hour}:${minutes}:00`
   }
 
   getCalendarPeriod(startDate: Date, numDays: number): string[] {

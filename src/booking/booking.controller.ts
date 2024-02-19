@@ -33,16 +33,24 @@ export class BookingController {
   }
 
   @Get('/fullAvailability/:venueId/:partySize')
-  async getFullRestaurantAvailability (@Session() session, @Param('venueId') venueId: string, @Param('partySize') partySize: number): Promise<FullRestaurantAvailabilityResponse> {
-    return await this.bookingService.getFullRestaurantAvailability(session.authToken, venueId, partySize)
+  async getFullRestaurantAvailability (@Param('venueId') venueId: string, @Param('partySize') partySize: number): Promise<FullRestaurantAvailabilityResponse> {
+    const existingRestaurant = await this.restaurantsService.findOneByVenueId(venueId)
+    if (existingRestaurant === null) {
+      const restaurantDetails = await this.resyClient.getRestaurantDetails(venueId)
+      await this.restaurantsService.create({ name: restaurantDetails.name, venueId: venueId })
+    }
+    return await this.bookingService.getFullRestaurantAvailability(venueId, partySize)
   }
 
   @Post('/book')
   async bookAndPersistReservation (@Session() session, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> { 
     const user = await this.resybotUserService.findOne(session.userUuid)
     if (user === null) { throw ErrorFactory.notFound(`Can't find user with uuid ${session.userUuid}`)}
-    const restaurant = await this.restaurantsService.findOneByVenueId(body.venueId)
-    if (restaurant === null) { throw ErrorFactory.notFound(`Can't find restaurant with venueId ${body.venueId}`)}
+    let restaurant = await this.restaurantsService.findOneByVenueId(body.venueId)
+    if (restaurant === null) {
+      const restaurantDetails = await this.resyClient.getRestaurantDetails(body.venueId)
+      restaurant = await this.restaurantsService.create({ name: restaurantDetails.name, venueId: body.venueId })
+    }
 
     // Assume every booking is a race against other bots. If there's a config, prioritize booking it first
     let bookedReservationDetails: BookReservationResponse
