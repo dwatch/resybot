@@ -18,6 +18,13 @@ export class UtilityFunctions {
     return Object.keys(payload).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(payload[key])).join('&')
   }
 
+  // This assumes Resy only releases on a whole minute
+  convertDateToResyTime(date: Date): string {
+    const hour = date.getHours
+    const minutes = date.getMinutes
+    return `${hour}:${minutes}:00`
+  }
+
   getCalendarPeriod(startDate: Date, numDays: number): string[] {
     const periodStart = startDate.toISOString().split("T")[0]
     const periodEnd = this.addDays(startDate, numDays).toISOString().split("T")[0]
