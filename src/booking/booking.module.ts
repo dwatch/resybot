@@ -8,7 +8,13 @@ import { UtilityModule } from 'src/utilities/utility.module';
 import { ResybotUserModule } from 'src/entities/resybot-user/resybot-user.module';
 
 @Module({
-  imports: [UtilityModule, ResyModule, RestaurantsModule, ReservationsModule, ResybotUserModule],
+  imports: [
+    UtilityModule, 
+    ResyModule, 
+    RestaurantsModule, 
+    ReservationsModule, 
+    ResybotUserModule
+  ],
   providers: [BookingService],
   controllers: [BookingController]
 })
