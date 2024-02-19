@@ -25,7 +25,7 @@ export class CheckForNewDayWorker {
     const data: CheckForNewDayDto = job.data
     const restaurant = data.restaurant
     const releasedDays = await this.resyClient.getRestaurantCalendar(restaurant.venueId, Constants.MIN_PARTY_SIZE, data.startDate, data.endDate)
-    if (restaurant.lastCheckedDate < releasedDays.lastCalendarDay) { // Maybe remove this? Keep trying the entire day until it it's booked?
+    if (restaurant.lastCheckedDate === null || restaurant.lastCheckedDate < releasedDays.lastCalendarDay) { // Maybe remove this? Keep trying the entire day until it it's booked?
       // Trigger workers in parallel to try booking reservation
       const pendingReservations = await this.reservationService.findPendingReservationsByRestaurant(restaurant.venueId)
       await Promise.all(pendingReservations.map(async (reservation) => {
