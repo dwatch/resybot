@@ -1,6 +1,4 @@
 import { Body, Controller, Get, Param, Post, Session } from '@nestjs/common';
-import { ReservationsService } from 'src/entities/reservation/reservation.service';
-import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
 import { BookingService } from './booking.service';
 import { FindRestaurantRequest } from './dto/find-restaurant.dto';
 import { SearchForRestaurantsResponse } from 'src/resy/dto/search-for-restaurants.dto';
@@ -9,7 +7,6 @@ import { FullRestaurantAvailabilityResponse } from './dto/full-restaurant-availa
 import { BookAndPersistReservationRequest } from './dto/book-and-persist.dto';
 import { BookReservationResponse } from 'src/resy/dto/book-reservation.dto';
 import { Constants } from 'src/utilities/constants';
-import { UtilityFunctions } from 'src/utilities/utility.functions';
 import { ErrorFactory } from 'src/utilities/error-factory';
 import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
 import { CancelReservationRequest } from 'src/booking/dto/cancel-reservation.dto';
@@ -17,9 +14,6 @@ import { CancelReservationRequest } from 'src/booking/dto/cancel-reservation.dto
 @Controller('booking')
 export class BookingController {
   constructor(
-    private readonly utilityFunctions: UtilityFunctions,
-    private readonly restaurantsService: RestaurantsService,
-    private readonly reservationsService: ReservationsService,
     private readonly resybotUserService: ResybotUserService,
     private readonly resyClient: ResyClient,
     private readonly bookingService: BookingService
