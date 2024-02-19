@@ -39,11 +39,10 @@ export class CheckForNewDayWorker {
         this.workerService.triggerBookFirstAvailableSlot(bookFirstAvailableSlotData)
       }))
 
+      // If lastCheckedDate is null, this will always fire at midnight and not at the actual release time
       if (restaurant.lastCheckedDate !== null) {
-        // If lastCheckedDate is null, this will always fire at midnight and not at the actual release time
         restaurant.newReservationReleaseTime = this.utilityFunctions.convertDateToResyTime(today)
       }
-      
       restaurant.lastCheckedDate = releasedDays.lastCalendarDay
       this.restaurantsService.save(restaurant)
     }
