@@ -44,12 +44,12 @@ export class BookingService {
     partySize: number, 
     unavailableDates: string[], 
     desiredTimesOfWeek: TimesOfWeek, 
-    configToken: string | null, 
-    resyToken: string | null
+    configToken: string | undefined, 
+    resyToken: string | undefined
   ): Promise<void> {
-    const configDetails = configToken === null ? null : this.utilityFunctions.parseConfigToken(configToken)
+    const configDetails = configToken === undefined ? undefined : this.utilityFunctions.parseConfigToken(configToken)
     await this.voidExistingReservations(user.uuid, restaurant.venueId)
-    if (resyToken === null) {
+    if (resyToken === undefined) {
       await this.resybotUserService.incrementPendingCount(user, 1)
       await this.restaurantsService.incrementPendingCount(restaurant, 1)  
     }
@@ -57,12 +57,12 @@ export class BookingService {
       user: user,
       restaurant: restaurant,
       partySize: partySize,
-      status: (resyToken === null) ? ReservationStatus.PENDING : ReservationStatus.BOOKED,
+      status: (resyToken === undefined) ? ReservationStatus.PENDING : ReservationStatus.BOOKED,
       unavailableDates: unavailableDates,
       desiredTimesOfWeek: desiredTimesOfWeek,
       reservationToken: resyToken,
-      reservationDay: (resyToken === null) ? null : configDetails.day,
-      reservationTime: (resyToken === null) ? null : configDetails.time
+      reservationDay: (resyToken === undefined) ? undefined : configDetails.day,
+      reservationTime: (resyToken === undefined) ? undefined : configDetails.time
     }
     await this.reservationsService.create(createReservationDto)
   }

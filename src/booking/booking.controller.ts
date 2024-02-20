@@ -41,7 +41,7 @@ export class BookingController {
     const user = await this.resybotUserService.findOne(session.userUuid) ?? (() => { throw ErrorFactory.notFound(`Can't find user with uuid ${session.userUuid}`) })()
 
     // Assume every booking is a race against other bots. If there's a config, prioritize booking it first
-    const bookedReservationDetails = body.configToken === null ? null : await this.bookingService.bookReservation(session.authToken, body.configToken)
+    const bookedReservationDetails = body.configToken === undefined ? undefined : await this.bookingService.bookReservation(session.authToken, body.configToken)
 
     // Don't want users creating multiple reservations for a hard-to-get restaurant. Forcefully limit their reservations to 1 per restaurant
     await this.bookingService.persistProcessedReservation(
