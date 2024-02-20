@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { hashSync, compareSync } from 'bcrypt';
 import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
 import { JwtService } from '@nestjs/jwt';
@@ -19,7 +19,10 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
+  private readonly logger = new Logger(AuthService.name);
+
   async validateUser(email: string, password: string): Promise<ResybotUser | null> {
+    this.logger.log(`Started validateUser with email ${email}`)
     const user = await this.resybotUserService.findOneByEmail(email);
     if (user === null) { return null }
 
@@ -32,6 +35,7 @@ export class AuthService {
   }
 
   createJwtToken(user: ResybotUser): ReturnJwtTokenDto {
+    this.logger.log(`Started createJwtToken with userUuid ${user.uuid}`)
     const payload: CreateJwtTokenDto = { sub: user.uuid };
     return {
       authToken: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
@@ -39,6 +43,7 @@ export class AuthService {
   }
 
   async signup(email: string, password: string): Promise<ResybotUser> {
+    this.logger.log(`Started signup with email ${email}`)
     const loginResponse = await this.resyClient.login(email, password)
     const hash = hashSync(password, Constants.SALT_ROUNDS)
     const createUserDto: CreateUserDto = {
@@ -49,10 +54,10 @@ export class AuthService {
       authToken: loginResponse.token
     }
  
-    console.log("Starting to build user")
+    this.logger.log("Starting to build user")
     const user = await this.resybotUserService.create(createUserDto)
  
-    console.log(`User ${user.uuid} has ${loginResponse.paymentMethods.length} payment methods. Saving now`)
+    this.logger.log(`User ${user.uuid} has ${loginResponse.paymentMethods.length} payment methods. Saving now`)
     await Promise.all(loginResponse.paymentMethods.map(async (method) => {
       const createPaymentMethodDto: CreatePaymentMethodDto = {
         user: user,
@@ -63,10 +68,10 @@ export class AuthService {
         resyId: method.id
       }
       const paymentMethod = await this.paymentMethodsService.create(createPaymentMethodDto)
-      console.log(`New payment method saved: ${paymentMethod}`)
+      this.logger.log(`New payment method saved: ${paymentMethod}`)
     }))
     
-    console.log("Completed building user")
+    this.logger.log("Completed building user")
     return user
   }
 }

@@ -1,6 +1,4 @@
 import { Body, Controller, Get, Param, Post, Session } from '@nestjs/common';
-import { ReservationsService } from 'src/entities/reservation/reservation.service';
-import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
 import { BookingService } from './booking.service';
 import { FindRestaurantRequest } from './dto/find-restaurant.dto';
 import { SearchForRestaurantsResponse } from 'src/resy/dto/search-for-restaurants.dto';
@@ -9,20 +7,13 @@ import { FullRestaurantAvailabilityResponse } from './dto/full-restaurant-availa
 import { BookAndPersistReservationRequest } from './dto/book-and-persist.dto';
 import { BookReservationResponse } from 'src/resy/dto/book-reservation.dto';
 import { Constants } from 'src/utilities/constants';
-import { CreateReservationDto } from 'src/entities/reservation/dto/create-reservation.dto';
-import { ReservationStatus } from 'src/entities/reservation/reservation.entity';
-import { UtilityFunctions } from 'src/utilities/utility.functions';
 import { ErrorFactory } from 'src/utilities/error-factory';
-import { ConfigTokenDetails } from 'src/utilities/dto/config-token-details';
 import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.service';
 import { CancelReservationRequest } from 'src/booking/dto/cancel-reservation.dto';
 
 @Controller('booking')
 export class BookingController {
   constructor(
-    private readonly utilityFunctions: UtilityFunctions,
-    private readonly restaurantsService: RestaurantsService,
-    private readonly reservationsService: ReservationsService,
     private readonly resybotUserService: ResybotUserService,
     private readonly resyClient: ResyClient,
     private readonly bookingService: BookingService
@@ -35,12 +26,8 @@ export class BookingController {
 
   @Get('/fullAvailability/:venueId/:partySize')
   async getFullRestaurantAvailability (@Param('venueId') venueId: string, @Param('partySize') partySize: number): Promise<FullRestaurantAvailabilityResponse> {
-    const existingRestaurant = await this.restaurantsService.findOneByVenueId(venueId)
-    if (existingRestaurant === null) {
-      const restaurantDetails = await this.resyClient.getRestaurantDetails(venueId)
-      await this.restaurantsService.create({ name: restaurantDetails.name, venueId: venueId })
-    }
-    return await this.bookingService.getFullRestaurantAvailability(venueId, partySize)
+    const restaurant = await this.bookingService.getOrCreateRestaurant(venueId) // This ensures the restaurant is persisted in our DB
+    return await this.bookingService.getFullRestaurantAvailability(restaurant.venueId, partySize)
   }
 
   @Post('/cancel')
@@ -50,43 +37,22 @@ export class BookingController {
 
   @Post('/book')
   async bookAndPersistReservation (@Session() session, @Body() body: BookAndPersistReservationRequest): Promise<BookReservationResponse | undefined> { 
-    const user = await this.resybotUserService.findOne(session.userUuid)
-    if (user === null) { throw ErrorFactory.notFound(`Can't find user with uuid ${session.userUuid}`)}
-    let restaurant = await this.restaurantsService.findOneByVenueId(body.venueId)
-    if (restaurant === null) {
-      const restaurantDetails = await this.resyClient.getRestaurantDetails(body.venueId)
-      restaurant = await this.restaurantsService.create({ name: restaurantDetails.name, venueId: body.venueId })
-    }
+    const restaurant = await this.bookingService.getOrCreateRestaurant(body.venueId)
+    const user = await this.resybotUserService.findOne(session.userUuid) ?? (() => { throw ErrorFactory.notFound(`Can't find user with uuid ${session.userUuid}`) })()
 
     // Assume every booking is a race against other bots. If there's a config, prioritize booking it first
-    let bookedReservationDetails: BookReservationResponse
-    let configDetails: ConfigTokenDetails
-    if (body.configToken !== null) {
-      try {
-        configDetails = this.utilityFunctions.parseConfigToken(body.configToken)
-        bookedReservationDetails = await this.bookingService.bookReservation(session.authToken, body.configToken)
-      } catch (error) {
-        console.log(error) // Fail silently so we can save the reservation as pending. Let async job try again later
-      }
-    }
+    const bookedReservationDetails = body.configToken === undefined ? undefined : await this.bookingService.bookReservation(session.authToken, body.configToken)
 
     // Don't want users creating multiple reservations for a hard-to-get restaurant. Forcefully limit their reservations to 1 per restaurant
-    const pendingReservationCount = +(bookedReservationDetails === undefined)
-    await this.bookingService.voidExistingReservations(user.uuid, restaurant.venueId)
-    await this.resybotUserService.incrementPendingCount(user, pendingReservationCount)
-    await this.restaurantsService.incrementPendingCount(restaurant, pendingReservationCount)
-    const createReservationDto: CreateReservationDto = {
-      user: user,
-      restaurant: restaurant,
-      partySize: body.partySize,
-      status: (bookedReservationDetails !== undefined) ? ReservationStatus.BOOKED : ReservationStatus.PENDING,
-      unavailableDates: body.unavailableDates,
-      desiredTimesOfWeek: body.desiredTimesOfWeek,
-      reservationToken: bookedReservationDetails?.resyToken,
-      reservationDay: (bookedReservationDetails !== undefined) ? configDetails.day : undefined,
-      reservationTime: (bookedReservationDetails !== undefined) ? configDetails.time : undefined
-    }
-    await this.reservationsService.create(createReservationDto)
+    await this.bookingService.persistProcessedReservation(
+      user, 
+      restaurant, 
+      body.partySize, 
+      body.unavailableDates, 
+      body.desiredTimesOfWeek, 
+      body.configToken, 
+      bookedReservationDetails?.resyToken
+    )
 
     return bookedReservationDetails
   }

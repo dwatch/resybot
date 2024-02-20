@@ -9,6 +9,11 @@ import { ResybotUserService } from 'src/entities/resybot-user/resybot-user.servi
 import { RestaurantsService } from 'src/entities/restaurant/restaurant.service';
 import { UtilityFunctions } from 'src/utilities/utility.functions';
 import { ErrorFactory } from 'src/utilities/error-factory';
+import { Restaurant } from 'src/entities/restaurant/restaurant.entity';
+import { ResybotUser } from 'src/entities/resybot-user/resybot-user.entity';
+import { CreateReservationDto } from 'src/entities/reservation/dto/create-reservation.dto';
+import { TimesOfWeek } from 'src/utilities/dto/times-of-week';
+
 
 @Injectable()
 export class BookingService {
@@ -19,9 +24,47 @@ export class BookingService {
     private readonly restaurantsService: RestaurantsService,
     private readonly utilityFunctions: UtilityFunctions
   ) {}
+  async getOrCreateRestaurant(venueId: string): Promise<Restaurant> {
+    let restaurant = await this.restaurantsService.findOneByVenueId(venueId)
+    if (restaurant === null) {
+      const restaurantDetails = await this.resyClient.getRestaurantDetails(venueId)
+      restaurant = await this.restaurantsService.create({ name: restaurantDetails.name, venueId: venueId })
+    }
+    return restaurant
+  }
+
   async bookReservation(authToken: string, configId: string): Promise<BookReservationResponse> {
     const createReservationResponse = await this.resyClient.createReservation(authToken, configId)
     return await this.resyClient.bookReservation(authToken, createReservationResponse.bookToken)
+  }
+
+  async persistProcessedReservation(
+    user: ResybotUser, 
+    restaurant: Restaurant, 
+    partySize: number, 
+    unavailableDates: string[], 
+    desiredTimesOfWeek: TimesOfWeek, 
+    configToken: string | undefined, 
+    resyToken: string | undefined
+  ): Promise<void> {
+    const configDetails = configToken === undefined ? undefined : this.utilityFunctions.parseConfigToken(configToken)
+    await this.voidExistingReservations(user.uuid, restaurant.venueId)
+    if (resyToken === undefined) {
+      await this.resybotUserService.incrementPendingCount(user, 1)
+      await this.restaurantsService.incrementPendingCount(restaurant, 1)  
+    }
+    const createReservationDto: CreateReservationDto = {
+      user: user,
+      restaurant: restaurant,
+      partySize: partySize,
+      status: (resyToken === undefined) ? ReservationStatus.PENDING : ReservationStatus.BOOKED,
+      unavailableDates: unavailableDates,
+      desiredTimesOfWeek: desiredTimesOfWeek,
+      reservationToken: resyToken,
+      reservationDay: (resyToken === undefined) ? undefined : configDetails.day,
+      reservationTime: (resyToken === undefined) ? undefined : configDetails.time
+    }
+    await this.reservationsService.create(createReservationDto)
   }
 
   async voidExistingReservations(userUuid: string, venueId: string): Promise<void> {
